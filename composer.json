@@ -1,0 +1,56 @@
+{
+  "name": "spicyweb/craft-content-templates",
+  "description": "A Craft CMS plugin for setting content templates for content editors to use as a starting point",
+  "version": "1.0.0",
+  "type": "craft-plugin",
+  "keywords": [
+    "cms",
+    "craftcms",
+    "plugin"
+  ],
+  "license": "proprietary",
+  "authors": [
+    {
+        "name": "Spicy Web",
+        "email": "plugins@spicyweb.com.au",
+        "homepage": "https://spicyweb.com.au/"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/spicywebau/craft-content-templates/issues",
+    "source": "https://github.com/spicywebau/craft-content-templates",
+    "docs": "https://github.com/spicywebau/craft-content-templates/blob/1.0.0/README.md",
+    "rss": "https://github.com/spicywebau/craft-content-templates/commits/1.x.atom"
+  },
+  "require": {
+    "craftcms/cms": "^4.3.0",
+    "php": "^8.0.2"
+  },
+  "autoload": {
+    "psr-4": {
+        "spicyweb\\contenttemplates\\": "src/"
+    }
+  },
+  "extra": {
+    "handle": "content-templates",
+    "name": "Content Templates",
+    "class": "spicyweb\\contenttemplates\\Plugin",
+    "changelogUrl": "https://github.com/spicywebau/craft-content-templates/blob/1.x/CHANGELOG.md",
+    "downloadUrl": "https://github.com/spicywebau/craft-content-templates/archive/refs/tags/1.0.0.zip"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require-dev": {
+    "craftcms/ecs": "dev-main"
+  },
+  "config": {
+    "allow-plugins": {
+      "yiisoft/yii2-composer": true,
+      "craftcms/plugin-installer": true
+    }
+  },
+  "scripts": {
+    "check-cs": "ecs check --ansi",
+    "fix-cs": "ecs check --ansi --fix"
+  }
+}
