@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "strictNullChecks": true
+  },
+  "files": [
+    "src/assets/index/src/scripts/main.ts",
+    "src/assets/index/src/scripts/types/Craft.d.ts",
+    "src/assets/index/src/scripts/types/Garnish.d.ts"
+  ]
+}

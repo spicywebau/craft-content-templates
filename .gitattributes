@@ -7,5 +7,6 @@
 /ecs.php export-ignore
 /package-lock.json export-ignore
 /package.json export-ignore
+/src/assets/index/src/ export-ignore
 /tests/ export-ignore
 /webpack.config.js export-ignore

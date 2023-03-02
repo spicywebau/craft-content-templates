@@ -1,0 +1,16 @@
+{% extends '_layouts/elementindex' %}
+
+{% set title = 'Content Templates'|t('content-templates') %}
+{% set elementType = 'spicyweb\\contenttemplates\\elements\\ContentTemplate' %}
+
+{% js %}
+  window.ContentTemplates = {
+    IndexSettings: {{ settings|json_encode|raw }}
+  }
+{% endjs %}
+
+{% if sectionAndEntryTypeHandles is defined %}
+    {% js %}
+        window.defaultSectionAndEntryTypeHandles = "{{ sectionAndEntryTypeHandles|e('js') }}";
+    {% endjs %}
+{% endif %}
