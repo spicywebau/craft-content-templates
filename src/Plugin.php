@@ -10,6 +10,7 @@ use craft\events\DefineElementEditorHtmlEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\web\UrlManager;
 use Illuminate\Support\Collection;
+use spicyweb\contenttemplates\assets\modal\Modal;
 use spicyweb\contenttemplates\controllers\Cp as CpController;
 use spicyweb\contenttemplates\services\ProjectConfig;
 use yii\base\Event;
@@ -87,7 +88,7 @@ class Plugin extends BasePlugin
                     ->isEmpty();
 
                 if ($showModal) {
-                    Craft::$app->getView()->registerJs('console.log("TODO")');
+                    Craft::$app->getView()->registerAssetBundle(Modal::class);
                 }
             }
         );

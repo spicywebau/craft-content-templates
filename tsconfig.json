@@ -11,6 +11,7 @@
   "files": [
     "src/assets/index/src/scripts/main.ts",
     "src/assets/index/src/scripts/types/Craft.d.ts",
-    "src/assets/index/src/scripts/types/Garnish.d.ts"
+    "src/assets/index/src/scripts/types/Garnish.d.ts",
+    "src/assets/modal/src/scripts/main.ts"
   ]
 }
