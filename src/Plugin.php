@@ -4,8 +4,12 @@ namespace spicyweb\contenttemplates;
 
 use Craft;
 use craft\base\Plugin as BasePlugin;
+use craft\controllers\ElementsController;
+use craft\elements\Entry;
+use craft\events\DefineElementEditorHtmlEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\web\UrlManager;
+use Illuminate\Support\Collection;
 use spicyweb\contenttemplates\controllers\Cp as CpController;
 use spicyweb\contenttemplates\services\ProjectConfig;
 use yii\base\Event;
@@ -45,6 +49,7 @@ class Plugin extends BasePlugin
         $this->_registerProjectConfigApply();
 
         if (Craft::$app->getRequest()->getIsCpRequest()) {
+            $this->_registerModal();
             $this->_registerUrlRules();
         }
     }
@@ -58,6 +63,34 @@ class Plugin extends BasePlugin
             ->onAdd('contentTemplates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
             ->onUpdate('contentTemplates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
             ->onRemove('contentTemplates.{uid}', [$this->projectConfig, 'handleDeletedContentTemplate']);
+    }
+
+    /**
+     * Listens for element editor content generation, and registers the content template selection modal if the element
+     * is an entry with no existing custom field content.
+     */
+    private function _registerModal(): void
+    {
+        Event::on(
+            ElementsController::class,
+            ElementsController::EVENT_DEFINE_EDITOR_CONTENT,
+            function(DefineElementEditorHtmlEvent $event) {
+                $element = $event->element;
+
+                // We only support entries
+                if (!$element instanceof Entry) {
+                    return;
+                }
+
+                $showModal = Collection::make($element->getFieldLayout()->getCustomFields())
+                    ->filter(fn($field) => !$element->isFieldEmpty($field->handle))
+                    ->isEmpty();
+
+                if ($showModal) {
+                    Craft::$app->getView()->registerJs('console.log("TODO")');
+                }
+            }
+        );
     }
 
     /**
