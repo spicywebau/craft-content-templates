@@ -52,8 +52,10 @@ namespace spicyweb\contenttemplates\elements;
 use Craft;
 use craft\base\Element;
 use craft\elements\User;
+use craft\fieldlayoutelements\entries\EntryTitleField;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
+use craft\models\FieldLayout;
 use craft\models\Section;
 use spicyweb\contenttemplates\elements\db\ContentTemplateQuery;
 use spicyweb\contenttemplates\Plugin;
@@ -286,6 +288,36 @@ class ContentTemplate extends Element
             $this->getAuthorId() === $user->id ||
             $user->can("viewPeerEntries:$section->uid")
         );
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFieldLayout(): ?FieldLayout
+    {
+        if (($fieldLayout = parent::getFieldLayout()) !== null) {
+            return $this->_fieldLayoutWithoutEntryTitleField($fieldLayout);
+        }
+        try {
+            $entryType = $this->getEntryType();
+        } catch (InvalidConfigException) {
+            // The entry type was probably deleted
+            return null;
+        }
+
+        return $this->_fieldLayoutWithoutEntryTitleField($entryType->getFieldLayout());
+    }
+
+    /**
+     * Hacky stuff to remove the EntryTitleField
+     */
+    private function _fieldLayoutWithoutEntryTitleField(FieldLayout $fieldLayout): FieldLayout
+    {
+        foreach ($fieldLayout->getTabs() as $tab) {
+            $tab->setElements(array_filter($tab->getElements(), fn($element) => !$element instanceof EntryTitleField));
+        }
+
+        return $fieldLayout;
     }
 
     /**
