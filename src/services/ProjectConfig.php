@@ -20,6 +20,22 @@ use yii\base\Component;
 class ProjectConfig extends Component
 {
     /**
+     * Handles deleting a content template.
+     *
+     * @param ConfigEvent $event
+     * @throws \Throwable
+     */
+    public function handleDeletedContentTemplate(ConfigEvent $event): void
+    {
+        // If the changes aren't external, the element is already deleted
+        if (Craft::$app->getProjectConfig()->getIsApplyingExternalChanges()) {
+            $uid = $event->tokenMatches[0];
+            $id = Db::idByUid(Table::ELEMENTS, $uid);
+            Craft::$app->getElements()->deleteElementById($id);
+        }
+    }
+
+    /**
      * Handles a content template change.
      *
      * @param ConfigEvent $event

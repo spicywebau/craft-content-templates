@@ -42,10 +42,22 @@ class Plugin extends BasePlugin
             'projectConfig' => ProjectConfig::class,
         ]);
         $this->hasCpSection = Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+        $this->_registerProjectConfigApply();
 
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerUrlRules();
         }
+    }
+
+    /**
+     * Listens for content template updates in the project config to apply them to the database.
+     */
+    private function _registerProjectConfigApply(): void
+    {
+        Craft::$app->getProjectConfig()
+            ->onAdd('contentTemplates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
+            ->onUpdate('contentTemplates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
+            ->onRemove('contentTemplates.{uid}', [$this->projectConfig, 'handleDeletedContentTemplate']);
     }
 
     /**
