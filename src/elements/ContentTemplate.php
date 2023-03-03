@@ -54,6 +54,7 @@ use craft\base\Element;
 use craft\elements\Entry;
 use craft\elements\User;
 use craft\fieldlayoutelements\entries\EntryTitleField;
+use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
 use craft\models\FieldLayout;
@@ -234,6 +235,7 @@ class ContentTemplate extends Element
 
         $config = [
             'title' => $this->title,
+            'slug' => $this->slug,
             'type' => $this->getEntryType()->uid,
             'content' => $this->getSerializedFieldValues(),
         ];
@@ -336,5 +338,29 @@ class ContentTemplate extends Element
         }
 
         return UrlHelper::cpUrl($path);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function metaFieldsHtml(bool $static): string
+    {
+        $fields = [];
+        $fields[] = Cp::textFieldHtml([
+            'label' => Craft::t('app', 'Title'),
+            'siteId' => $this->siteId,
+            'translationDescription' => Craft::t('app', 'This field is translated for each site.'),
+            'id' => 'title',
+            'name' => 'title',
+            'autocorrect' => false,
+            'autocapitalize' => false,
+            'value' => $this->title,
+            'disabled' => $static,
+            'errors' => $this->getErrors('title'),
+        ]);
+        $fields[] = $this->slugFieldHtml($static);
+        $fields[] = parent::metaFieldsHtml($static);
+
+        return implode("\n", $fields);
     }
 }
