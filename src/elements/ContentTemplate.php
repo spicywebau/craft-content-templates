@@ -51,6 +51,7 @@ namespace spicyweb\contenttemplates\elements;
 
 use Craft;
 use craft\base\Element;
+use craft\elements\Entry;
 use craft\elements\User;
 use craft\fieldlayoutelements\entries\EntryTitleField;
 use craft\helpers\UrlHelper;
@@ -269,25 +270,25 @@ class ContentTemplate extends Element
      */
     public function canView(User $user): bool
     {
-        if (parent::canView($user)) {
-            return true;
-        }
+        return parent::canView($user) ? true : $this->_mockEntryForPermissionChecks()->canView($user);
+    }
 
-        $section = $this->getSection();
+    /**
+     * @inheritdoc
+     */
+    public function canSave(User $user): bool
+    {
+        return parent::canSave($user) ? true : $this->_mockEntryForPermissionChecks()->canSave($user);
+    }
 
-        if (!$user->can("viewEntries:$section->uid")) {
-            return false;
-        }
+    private function _mockEntryForPermissionChecks(): Entry
+    {
+        $entryType = $this->getEntryType();
+        $mockEntry = new Entry();
+        $mockEntry->sectionId = $entryType->sectionId;
+        $mockEntry->setTypeId($entryType->id);
 
-        if ($this->getIsDraft() && $this->getIsDerivative()) {
-            return $user->can("viewPeerEntryDrafts:$section->uid");
-        }
-
-        return (
-            $section->type === Section::TYPE_SINGLE ||
-            $this->getAuthorId() === $user->id ||
-            $user->can("viewPeerEntries:$section->uid")
-        );
+        return $mockEntry;
     }
 
     /**
