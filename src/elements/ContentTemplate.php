@@ -272,7 +272,7 @@ class ContentTemplate extends Element
      */
     public function canView(User $user): bool
     {
-        return parent::canView($user) ? true : $this->_mockEntryForPermissionChecks()->canView($user);
+        return $this->_can('view', $user);
     }
 
     /**
@@ -280,9 +280,38 @@ class ContentTemplate extends Element
      */
     public function canSave(User $user): bool
     {
-        return parent::canSave($user) ? true : $this->_mockEntryForPermissionChecks()->canSave($user);
+        return $this->_can('save', $user);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function canDelete(User $user): bool
+    {
+        // Fall back to the save permission for single sections, which would otherwise always return false
+        return $this->getSection()->type !== Section::TYPE_SINGLE
+            ? $this->_can('delete', $user)
+            : $this->_can('save', $user);
+    }
+
+    /**
+     * Common code for checking user permissions.
+     *
+     * @param string $action
+     * @param User $user
+     * @return bool Whether $user can do $action
+     */
+    private function _can(string $action, User $user): bool
+    {
+        $can = 'can' . ucfirst($action);
+        return parent::{$can}($user) ? true : $this->_mockEntryForPermissionChecks()->{$can}($user);
+    }
+
+    /**
+     * Creates an entry with this content template's entry type, for checking user permissions.
+     *
+     * @return Entry
+     */
     private function _mockEntryForPermissionChecks(): Entry
     {
         $entryType = $this->getEntryType();
