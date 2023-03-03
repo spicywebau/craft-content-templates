@@ -247,6 +247,20 @@ class ContentTemplate extends Element
         }
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function afterDelete(): void
+    {
+        $projectConfig = Craft::$app->getProjectConfig();
+
+        if (!$projectConfig->getIsApplyingExternalChanges()) {
+            $projectConfig->remove("contentTemplates.$this->uid");
+        }
+
+        parent::afterDelete();
+    }
+
     public function getSection(): ?Section
     {
         if ($this->_section === null && $this->typeId !== null) {
