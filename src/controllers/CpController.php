@@ -73,8 +73,23 @@ use yii\web\ServerErrorHttpException;
  * @author Spicy Web <plugins@spicyweb.com.au>
  * @since 1.0.0
  */
-class Cp extends Controller
+class CpController extends Controller
 {
+    /**
+     * @inheritdoc
+     */
+    public $defaultAction = 'index';
+
+    /**
+     * @inheritdoc
+     */
+    protected array|int|bool $allowAnonymous = self::ALLOW_ANONYMOUS_NEVER;
+
+    /**
+     * Loads the content templates index page.
+     *
+     * @return Response
+     */
     public function actionIndex(): Response
     {
         $this->getView()->registerAssetBundle(IndexAsset::class);

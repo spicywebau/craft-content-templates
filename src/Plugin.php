@@ -10,7 +10,7 @@ use craft\events\DefineElementEditorHtmlEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\web\UrlManager;
 use Illuminate\Support\Collection;
-use spicyweb\contenttemplates\controllers\Cp as CpController;
+use spicyweb\contenttemplates\controllers\CpController;
 use spicyweb\contenttemplates\services\ProjectConfig;
 use spicyweb\contenttemplates\web\assets\modal\ModalAsset;
 use yii\base\Event;
