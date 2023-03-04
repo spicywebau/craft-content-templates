@@ -1,2 +1,2 @@
-console.log("TODO");
+(()=>{"use strict";var t={898:(t,e)=>{Object.defineProperty(e,"__esModule",{value:!0}),e.default=class{constructor(t){this.id=t.id,this.title=t.title,this.description=t.description}getButtonHtml(){return`${this.id} / ${this.title} / ${this.description}`}}}},e={};function n(o){var i=e[o];if(void 0!==i)return i.exports;var s=e[o]={exports:{}};return t[o](s,s.exports,n),s.exports}(()=>{const t=n(898);void 0===window.ContentTemplates&&(window.ContentTemplates={}),window.ContentTemplates.Modal=Garnish.Modal.extend({init(e){this.elementId=e.elementId,this.contentTemplates=e.contentTemplates.map((e=>new t.default(e))),console.log(this.elementId),this.contentTemplates.forEach((t=>console.log(t.getButtonHtml())))}})})()})();
 //# sourceMappingURL=modal.js.map

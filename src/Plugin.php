@@ -8,6 +8,7 @@ use craft\controllers\ElementsController;
 use craft\elements\Entry;
 use craft\events\DefineElementEditorHtmlEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\helpers\Json;
 use craft\web\UrlManager;
 use Illuminate\Support\Collection;
 use spicyweb\contenttemplates\controllers\CpController;
@@ -107,7 +108,18 @@ class Plugin extends BasePlugin
                     ->collect();
 
                 if (!$contentTemplates->isEmpty()) {
-                    Craft::$app->getView()->registerAssetBundle(ModalAsset::class);
+                    $modalSettings = [
+                        'elementId' => $element->id,
+                        'contentTemplates' => $contentTemplates->map(fn($contentTemplate) => [
+                            'id' => $contentTemplate->id,
+                            'title' => $contentTemplate->title,
+                            'description' => $contentTemplate->description,
+                        ])->all(),
+                    ];
+                    $encodedModalSettings = Json::encode($modalSettings, JSON_UNESCAPED_UNICODE);
+                    $view = Craft::$app->getView();
+                    $view->registerAssetBundle(ModalAsset::class);
+                    $view->registerJs("new ContentTemplates.Modal($encodedModalSettings)");
                 }
             }
         );
