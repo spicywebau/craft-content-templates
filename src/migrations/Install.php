@@ -21,6 +21,7 @@ class Install extends Migration
         $this->createTable('{{%contenttemplates}}', [
             'id' => $this->integer()->notNull(),
             'typeId' => $this->integer()->notNull(),
+            'description' => $this->string(),
             'PRIMARY KEY([[id]])',
         ]);
         $this->createIndex(null, '{{%contenttemplates}}', ['typeId'], false);

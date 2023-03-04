@@ -79,6 +79,11 @@ class ContentTemplate extends Element
     public ?int $typeId = null;
 
     /**
+     * @var ?string The description of this content template.
+     */
+    public ?string $description = null;
+
+    /**
      * @var ?Section
      */
     private ?Section $_section = null;
@@ -225,6 +230,18 @@ class ContentTemplate extends Element
     /**
      * @inheritdoc
      */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = [['typeId'], 'number', 'integerOnly' => true];
+        $rules[] = [['description'], 'string'];
+
+        return $rules;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function prepareEditScreen(Response $response, string $containerId): void
     {
         $entryType = $this->getEntryType();
@@ -260,6 +277,7 @@ class ContentTemplate extends Element
             'title' => $this->title,
             'type' => $this->getEntryType()->uid,
             'content' => $this->getSerializedFieldValues(),
+            'description' => $this->description ?? Craft::$app->getRequest()->getBodyParam('description'),
         ];
 
         if ($this->getIsDraft()) {
@@ -417,6 +435,19 @@ class ContentTemplate extends Element
             'value' => $this->title,
             'disabled' => $static,
             'errors' => $this->getErrors('title'),
+        ]);
+        $fields[] = Cp::textareaFieldHtml([
+            'label' => Craft::t('content-templates', 'Description'),
+            'id' => 'description',
+            'name' => 'description',
+            'value' => $this->description,
+            'disabled' => $static,
+            'errors' => $this->getErrors('description'),
+            'inputAttributes' => [
+                'aria' => [
+                    'label' => Craft::t('content-templates', 'The description to use for this content template.'),
+                ],
+            ],
         ]);
         $fields[] = parent::metaFieldsHtml($static);
 

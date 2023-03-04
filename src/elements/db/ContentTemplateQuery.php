@@ -37,6 +37,7 @@ class ContentTemplateQuery extends ElementQuery
 
         $this->query->select([
             'contenttemplates.typeId',
+            'contenttemplates.description',
         ]);
 
         if ($this->typeId) {
