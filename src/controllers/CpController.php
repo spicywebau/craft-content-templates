@@ -186,15 +186,8 @@ class CpController extends Controller
             $contentTemplate->setEnabledForSite(true);
         }
 
-        // Title & slug
+        // Title
         $contentTemplate->title = $this->request->getQueryParam('title');
-        $contentTemplate->slug = $this->request->getQueryParam('slug');
-        if ($contentTemplate->title && !$contentTemplate->slug) {
-            $contentTemplate->slug = ElementHelper::generateSlug($contentTemplate->title, null, $site->language);
-        }
-        if (!$contentTemplate->slug) {
-            $contentTemplate->slug = ElementHelper::tempSlug();
-        }
 
         // Custom fields
         foreach ($entryType->getFieldLayout()->getCustomFields() as $field) {

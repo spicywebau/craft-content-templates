@@ -258,7 +258,6 @@ class ContentTemplate extends Element
 
         $config = [
             'title' => $this->title,
-            'slug' => $this->slug,
             'type' => $this->getEntryType()->uid,
             'content' => $this->getSerializedFieldValues(),
         ];
@@ -398,11 +397,6 @@ class ContentTemplate extends Element
         $section = $entryType->getSection();
         $path = sprintf('content-templates/%s/%s/%s', $section->handle, $entryType->handle, $this->getCanonicalId());
 
-        // Ignore homepage/temp slugs
-        if ($this->slug && !str_starts_with($this->slug, '__')) {
-            $path .= "-$this->slug";
-        }
-
         return UrlHelper::cpUrl($path);
     }
 
@@ -424,7 +418,6 @@ class ContentTemplate extends Element
             'disabled' => $static,
             'errors' => $this->getErrors('title'),
         ]);
-        $fields[] = $this->slugFieldHtml($static);
         $fields[] = parent::metaFieldsHtml($static);
 
         return implode("\n", $fields);

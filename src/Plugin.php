@@ -122,7 +122,7 @@ class Plugin extends BasePlugin
             $event->rules['content-templates'] = 'content-templates/cp/index';
             $event->rules['content-templates/<sectionHandle:{handle}>'] = 'content-templates/cp/index';
             $event->rules['content-templates/<sectionHandle:{handle}>/<entryTypeHandle:{handle}>'] = 'content-templates/cp/index';
-            $event->rules['content-templates/<sectionHandle:{handle}>/<entryTypeHandle:{handle}>/<elementId:\d+><slug:(?:-[^\/]*)?>'] = 'elements/edit';
+            $event->rules['content-templates/<sectionHandle:{handle}>/<entryTypeHandle:{handle}>/<elementId:\d+>'] = 'elements/edit';
         });
     }
 }
