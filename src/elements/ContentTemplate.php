@@ -62,6 +62,7 @@ use craft\models\Section;
 use spicyweb\contenttemplates\elements\db\ContentTemplateQuery;
 use spicyweb\contenttemplates\Plugin;
 use yii\db\Expression;
+use yii\web\Response;
 
 /**
  * Content template element class.
@@ -219,6 +220,28 @@ class ContentTemplate extends Element
                 'defaultDir' => 'desc',
             ],
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function prepareEditScreen(Response $response, string $containerId): void
+    {
+        $entryType = $this->getEntryType();
+        $section = $this->getSection();
+        $response->crumbs([
+            [
+                'label' => self::pluralDisplayName(),
+                'url' => UrlHelper::cpUrl('content-templates'),
+            ],
+            [
+                'label' => Craft::t('site', '{section} - {entryType}', [
+                    'section' => $section->name,
+                    'entryType' => $entryType->name,
+                ]),
+                'url' => UrlHelper::cpUrl("content-templates/$section->handle/$entryType->handle"),
+            ],
+        ]);
     }
 
     /**
