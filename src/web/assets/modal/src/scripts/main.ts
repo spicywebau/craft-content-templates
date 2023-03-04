@@ -4,14 +4,33 @@ import ContentTemplateSettings from './ContentTemplateSettings'
 declare global {
   interface Window {
     ContentTemplates: {
-      Modal?: ContentTemplatesModal
+      Modal?: typeof ContentTemplatesModal
     }
   }
 }
 
-interface ContentTemplatesModal {
-  contentTemplates: ContentTemplate[]
-  elementId: number
+class ContentTemplatesModal {
+  public readonly contentTemplates: ContentTemplate[]
+  public readonly elementId: number
+  public readonly garnishModal: any
+
+  /**
+   * The constructor.
+   */
+  constructor (settings: ModalSettings) {
+    this.elementId = settings.elementId
+    this.contentTemplates = settings.contentTemplates
+      .map((contentTemplate) => new ContentTemplate(contentTemplate))
+
+    const tempHtml = this.contentTemplates
+      .map((contentTemplate) => contentTemplate.getButtonHtml())
+      .join('<br>')
+    const $body: JQuery = $('<div class="body" />')
+      .html(`${this.elementId} / ${tempHtml}`)
+    const $modal: JQuery = $('<div class="modal" />')
+      .append($body)
+    this.garnishModal = new Garnish.Modal($modal)
+  }
 }
 
 interface ModalSettings extends Object {
@@ -23,16 +42,4 @@ if (typeof window.ContentTemplates === 'undefined') {
   window.ContentTemplates = {}
 }
 
-window.ContentTemplates.Modal = Garnish.Modal.extend({
-  /**
-   * The constructor.
-   */
-  init (this: ContentTemplatesModal, settings: ModalSettings): void {
-    this.elementId = settings.elementId
-    this.contentTemplates = settings.contentTemplates
-      .map((contentTemplate) => new ContentTemplate(contentTemplate))
-
-    console.log(this.elementId)
-    this.contentTemplates.forEach((contentTemplate) => console.log(contentTemplate.getButtonHtml()))
-  }
-})
+window.ContentTemplates.Modal = ContentTemplatesModal
