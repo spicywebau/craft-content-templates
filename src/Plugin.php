@@ -32,6 +32,18 @@ class Plugin extends BasePlugin
     /**
      * @inheritdoc
      */
+    public static function config(): array
+    {
+        return [
+            'components' => [
+                'projectConfig' => ProjectConfig::class,
+            ],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
     public $controllerMap = [
         'cp' => CpController::class,
     ];
@@ -43,9 +55,6 @@ class Plugin extends BasePlugin
     {
         parent::init();
         self::$plugin = $this;
-        $this->setComponents([
-            'projectConfig' => ProjectConfig::class,
-        ]);
         $this->hasCpSection = Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
         $this->_registerProjectConfigApply();
 
