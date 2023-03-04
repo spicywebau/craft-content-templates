@@ -9,9 +9,9 @@
     "strictNullChecks": true
   },
   "files": [
-    "src/assets/index/src/scripts/main.ts",
-    "src/assets/index/src/scripts/types/Craft.d.ts",
-    "src/assets/index/src/scripts/types/Garnish.d.ts",
-    "src/assets/modal/src/scripts/main.ts"
+    "src/web/assets/index/src/scripts/main.ts",
+    "src/web/assets/index/src/scripts/types/Craft.d.ts",
+    "src/web/assets/index/src/scripts/types/Garnish.d.ts",
+    "src/web/assets/modal/src/scripts/main.ts"
   ]
 }

@@ -59,8 +59,8 @@ use craft\models\Section;
 use craft\models\Section_SiteSettings;
 use craft\web\Controller;
 use Illuminate\Support\Collection;
-use spicyweb\contenttemplates\assets\index\Index;
 use spicyweb\contenttemplates\elements\ContentTemplate;
+use spicyweb\contenttemplates\web\assets\index\IndexAsset;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
@@ -77,7 +77,7 @@ class Cp extends Controller
 {
     public function actionIndex(): Response
     {
-        $this->getView()->registerAssetBundle(Index::class);
+        $this->getView()->registerAssetBundle(IndexAsset::class);
         return $this->renderTemplate('content-templates/_index', [
             'settings' => $this->_getIndexSettings(),
         ]);

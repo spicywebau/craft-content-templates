@@ -28,7 +28,7 @@
   },
   "ts-standard": {
     "ignore": [
-      "src/assets/*/dist/**/*.js"
+      "src/web/assets/*/dist/**/*.js"
     ]
   }
 }

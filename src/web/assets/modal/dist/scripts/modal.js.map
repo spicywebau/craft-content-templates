@@ -1,0 +1,1 @@
+{"version":3,"file":"modal/dist/scripts/modal.js","mappings":"AAAAA,QAAQC,IAAI","sources":["webpack://craft-content-templates/./src/web/assets/modal/src/scripts/main.ts"],"sourcesContent":["console.log('TODO')\n"],"names":["console","log"],"sourceRoot":""}

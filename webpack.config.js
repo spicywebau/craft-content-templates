@@ -3,11 +3,11 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
   entry: {
-    index: path.resolve(__dirname, 'src/assets/index/src/scripts/main.ts'),
-    modal: path.resolve(__dirname, 'src/assets/modal/src/scripts/main.ts')
+    index: path.resolve(__dirname, 'src/web/assets/index/src/scripts/main.ts'),
+    modal: path.resolve(__dirname, 'src/web/assets/modal/src/scripts/main.ts')
   },
   output: {
-    path: path.resolve(__dirname, 'src/assets'),
+    path: path.resolve(__dirname, 'src/web/assets'),
     filename: '[name]/dist/scripts/[name].js'
   },
   externals: {
