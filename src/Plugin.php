@@ -11,6 +11,7 @@ use craft\events\RegisterUrlRulesEvent;
 use craft\web\UrlManager;
 use Illuminate\Support\Collection;
 use spicyweb\contenttemplates\controllers\CpController;
+use spicyweb\contenttemplates\elements\ContentTemplate;
 use spicyweb\contenttemplates\services\ProjectConfig;
 use spicyweb\contenttemplates\web\assets\modal\ModalAsset;
 use yii\base\Event;
@@ -92,11 +93,20 @@ class Plugin extends BasePlugin
                     return;
                 }
 
-                $showModal = Collection::make($element->getFieldLayout()->getCustomFields())
+                $hasNoContent = Collection::make($element->getFieldLayout()->getCustomFields())
                     ->filter(fn($field) => !$element->isFieldEmpty($field->handle))
                     ->isEmpty();
 
-                if ($showModal) {
+                // If it already has content, we don't want to overwrite it
+                if (!$hasNoContent) {
+                    return;
+                }
+
+                $contentTemplates = ContentTemplate::find()
+                    ->typeId($element->typeId)
+                    ->collect();
+
+                if (!$contentTemplates->isEmpty()) {
                     Craft::$app->getView()->registerAssetBundle(ModalAsset::class);
                 }
             }

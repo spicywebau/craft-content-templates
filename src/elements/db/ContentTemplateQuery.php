@@ -14,9 +14,22 @@ use craft\elements\db\ElementQuery;
 class ContentTemplateQuery extends ElementQuery
 {
     /**
-     * @var array|int|null The entry type ID(s) for this query.
+     * @var int[]|int|null The entry type ID(s) for this query.
      */
     public array|int|null $typeId = null;
+
+    /**
+     * Filters the query results based on the entry type IDs.
+     *
+     * @param int[]|int|null $value The entry type ID(s).
+     * @return self
+     */
+    public function typeId(array|int|null $value): self
+    {
+        $this->typeId = $value;
+
+        return $this;
+    }
 
     protected function beforePrepare(): bool
     {
