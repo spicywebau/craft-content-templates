@@ -3,6 +3,7 @@
  */
 declare const Craft: {
   BaseElementIndex: any
+  cp: Cp
   createElementEditor: (elementType: string, element: JQuery|Element|object, settings?: object) => any
   getUrl: (path: string, params?: object|string, baseUrl?: string) => string
   publishableSections: [Section]
@@ -12,6 +13,14 @@ declare const Craft: {
   setPath: (path: string) => void
   t: (category: string, message: string, params?: object) => string
   ui: any
+}
+
+/**
+ * An interface for Craft control panel functionality.
+ */
+interface Cp {
+  displayError: (message: string) => void
+  displayNotice: (message: string) => void
 }
 
 interface Section {

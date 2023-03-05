@@ -223,6 +223,36 @@ class CpController extends Controller
         return $response;
     }
 
+    /**
+     * Applies a content template's content to an entry.
+     *
+     * @return Response
+     */
+    public function actionApply(): Response
+    {
+        $request = Craft::$app->getRequest();
+        $elementsService = Craft::$app->getElements();
+        $elementId = $request->getRequiredBodyParam('elementId');
+        $contentTemplateId = $request->getRequiredBodyParam('contentTemplateId');
+
+        $element = $elementsService->getElementById($elementId);
+        $contentTemplate = $elementsService->getElementById($contentTemplateId);
+        $tempDuplicateTemplate = $elementsService->duplicateElement($contentTemplate);
+        $element->setFieldValues($tempDuplicateTemplate->getSerializedFieldValues());
+        $success = $elementsService->saveElement($element, !$element->getIsDraft());
+        $elementsService->deleteElement($tempDuplicateTemplate);
+
+        if (!$success) {
+            return $this->asFailure('Failed to apply content template to ' . $element::lowerDisplayName());
+        }
+
+        return $this->asSuccess(data: [
+            'redirect' => UrlHelper::urlWithParams($element->getCpEditUrl(), [
+                'fresh' => 1,
+            ]),
+        ]);
+    }
+
     private function _getIndexSettings(): array
     {
         return [

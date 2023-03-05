@@ -44,8 +44,19 @@ class ContentTemplatesModal {
           // The blank option
           this.garnishModal.hide()
         } else {
-          // TODO: POST request when we have a controller method for it
-          console.log(contentTemplate.id)
+          const data = {
+            elementId: this.elementId,
+            contentTemplateId: contentTemplate.id
+          }
+          Craft.sendActionRequest('POST', 'content-templates/cp/apply', { data })
+            .then((response) => {
+              window.location.href = response.data.redirect
+            })
+            .catch(response => {
+              Craft.cp.displayError(
+                response.error ?? Craft.t('content-templates', 'An unknown error occurred.')
+              )
+            })
         }
       })
     })
