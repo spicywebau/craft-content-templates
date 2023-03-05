@@ -1,5 +1,5 @@
 export default interface ContentTemplateSettings {
-  id: number
+  id?: number
   title: string
   description: string
 }

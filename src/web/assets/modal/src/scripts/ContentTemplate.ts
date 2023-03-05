@@ -5,7 +5,7 @@ export default class ContentTemplate {
    * The content template ID.
    * @public
    */
-  public readonly id: number
+  public readonly id?: number
 
   /**
    * The content template title.
@@ -20,6 +20,12 @@ export default class ContentTemplate {
   public readonly description: string
 
   /**
+   * The content template button.
+   * @public
+   */
+  public readonly $button: JQuery<HTMLElement>
+
+  /**
    * The constructor.
    * @param settings - A `ContentTemplateSettings` object.
    * @public
@@ -28,15 +34,16 @@ export default class ContentTemplate {
     this.id = settings.id
     this.title = settings.title
     this.description = settings.description
+    this.$button = $(this._buttonHtml())
   }
 
   /**
    * Gets the button HTML to use for this content template in the selection modal.
    * @returns the button HTML as a string
-   * @public
+   * @private
    */
-  public getButtonHtml (): string {
-    // TODO
-    return `${this.id} / ${this.title} / ${this.description}`
+  private _buttonHtml (): string {
+    // TODO: something better than this!
+    return `<button>${this.title}<br>${this.description}</button>`
   }
 }

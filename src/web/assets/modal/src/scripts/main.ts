@@ -19,17 +19,36 @@ class ContentTemplatesModal {
    */
   constructor (settings: ModalSettings) {
     this.elementId = settings.elementId
-    this.contentTemplates = settings.contentTemplates
-      .map((contentTemplate) => new ContentTemplate(contentTemplate))
+    // Always start off with a blank one
+    this.contentTemplates = [
+      new ContentTemplate({
+        title: Craft.t('content-templates', 'Blank'),
+        description: Craft.t('content-templates', 'Start off with a clean slate.')
+      })
+    ]
+    this.contentTemplates.push(
+      ...settings.contentTemplates
+        .map((contentTemplate) => new ContentTemplate(contentTemplate))
+    )
 
-    const tempHtml = this.contentTemplates
-      .map((contentTemplate) => contentTemplate.getButtonHtml())
-      .join('<br>')
-    const $body: JQuery = $('<div class="body" />')
-      .html(`${this.elementId} / ${tempHtml}`)
     const $modal: JQuery = $('<div class="modal" />')
-      .append($body)
     this.garnishModal = new Garnish.Modal($modal)
+    const $body: JQuery = $('<div class="body" />')
+      .appendTo($modal)
+    this.contentTemplates.forEach((contentTemplate) => {
+      $('<div class="ct-container" />')
+        .append(contentTemplate.$button)
+        .appendTo($body)
+      contentTemplate.$button.on('activate', (_: JQuery.Event) => {
+        if (typeof contentTemplate.id === 'undefined') {
+          // The blank option
+          this.garnishModal.hide()
+        } else {
+          // TODO: POST request when we have a controller method for it
+          console.log(contentTemplate.id)
+        }
+      })
+    })
   }
 }
 
