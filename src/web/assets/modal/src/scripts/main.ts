@@ -1,5 +1,6 @@
 import ContentTemplate from './ContentTemplate'
 import ContentTemplateSettings from './ContentTemplateSettings'
+import '../styles/main.scss'
 
 declare global {
   interface Window {
@@ -35,10 +36,13 @@ class ContentTemplatesModal {
     this.garnishModal = new Garnish.Modal($modal)
     const $body: JQuery = $('<div class="body" />')
       .appendTo($modal)
+      .append($('<h2 class="ct_heading" />').text(Craft.t('content-templates', 'Choose a template')))
+    const $contentTemplatesContainer = $('<div class="ct_container" />')
+      .appendTo($body)
     this.contentTemplates.forEach((contentTemplate) => {
-      $('<div class="ct-container" />')
+      $('<div class="ct_template" />')
         .append(contentTemplate.$button)
-        .appendTo($body)
+        .appendTo($contentTemplatesContainer)
       contentTemplate.$button.on('activate', (_: JQuery.Event) => {
         if (typeof contentTemplate.id === 'undefined') {
           // The blank option

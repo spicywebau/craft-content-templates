@@ -34,16 +34,22 @@ export default class ContentTemplate {
     this.id = settings.id
     this.title = settings.title
     this.description = settings.description
-    this.$button = $(this._buttonHtml())
+    this.$button = $(this._button())
   }
 
   /**
-   * Gets the button HTML to use for this content template in the selection modal.
-   * @returns the button HTML as a string
+   * Gets the button JQuery object to use for this content template in the selection modal.
+   * @returns the button
    * @private
    */
-  private _buttonHtml (): string {
-    // TODO: something better than this!
-    return `<button>${this.title}<br>${this.description}</button>`
+  private _button (): JQuery<HTMLElement> {
+    const $button = $('<button />')
+      .append($('<p />').text(this.title))
+
+    if (this.description !== null) {
+      $button.append($('<p />').text(this.description))
+    }
+
+    return $button
   }
 }

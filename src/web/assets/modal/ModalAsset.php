@@ -30,6 +30,13 @@ class ModalAsset extends AssetBundle
     /**
      * @inheritdoc
      */
+    public $css = [
+        'styles/modal.css',
+    ];
+
+    /**
+     * @inheritdoc
+     */
     public $js = [
         'scripts/modal.js',
     ];
