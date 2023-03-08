@@ -32,7 +32,8 @@ class ContentTemplatesModal {
         .map((contentTemplate) => new ContentTemplate(contentTemplate))
     )
 
-    const $modal: JQuery = $('<div class="modal" />')
+    const $modal: JQuery = $('<div class="modal ct_modal" />')
+      .append($('<div class="spinner big">'))
     this.garnishModal = new Garnish.Modal($modal)
     const $body: JQuery = $('<div class="body" />')
       .appendTo($modal)
@@ -48,6 +49,7 @@ class ContentTemplatesModal {
           // The blank option
           this.garnishModal.hide()
         } else {
+          $modal.addClass('applying')
           const data = {
             elementId: this.elementId,
             contentTemplateId: contentTemplate.id
@@ -57,6 +59,7 @@ class ContentTemplatesModal {
               window.location.href = response.data.redirect
             })
             .catch(response => {
+              $modal.removeClass('applying')
               Craft.cp.displayError(
                 response.error ?? Craft.t('content-templates', 'An unknown error occurred.')
               )
