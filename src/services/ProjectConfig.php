@@ -52,17 +52,17 @@ class ProjectConfig extends Component
     {
         Craft::$app->getDb()->transaction(function() use ($uid, $data) {
             $projectConfig = Craft::$app->getProjectConfig();
-
-            // If we're not applying external changes, we don't want to resave the content
-            if ($projectConfig->getIsApplyingExternalChanges()) {
-                // TODO
-            }
-
             $id = Db::idByUid(Table::ELEMENTS, $uid);
             $record = ContentTemplateRecord::findOne(['id' => $id]);
 
             if ($record === null) {
                 $record = new ContentTemplateRecord();
+            } elseif ($projectConfig->getIsApplyingExternalChanges()) {
+                // If we're applying external changes, we'll need to resave the element with the new content
+                $elementsService = Craft::$app->getElements();
+                $contentTemplate = $elementsService->getElementById($id);
+                $contentTemplate->setFieldValues($data['content']);
+                $elementsService->saveElement($contentTemplate);
             }
 
             $record->id = $id;

@@ -49,11 +49,14 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace spicyweb\contenttemplates\elements;
 
+use benf\neo\Field as NeoField;
 use Craft;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\elements\Entry;
 use craft\elements\User;
 use craft\fieldlayoutelements\entries\EntryTitleField;
+use craft\fields\Matrix as MatrixField;
 use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
@@ -61,6 +64,7 @@ use craft\models\FieldLayout;
 use craft\models\Section;
 use spicyweb\contenttemplates\elements\db\ContentTemplateQuery;
 use spicyweb\contenttemplates\Plugin;
+use verbb\supertable\fields\SuperTableField;
 use yii\db\Expression;
 use yii\web\Response;
 
@@ -154,7 +158,7 @@ class ContentTemplate extends Element
      */
     public static function isLocalized(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -276,7 +280,7 @@ class ContentTemplate extends Element
         $config = [
             'title' => $this->title,
             'type' => $this->getEntryType()->uid,
-            'content' => $this->getSerializedFieldValues(),
+            'content' => $this->_serializedFieldValuesWithoutBlockIds(),
             'description' => $this->description ?? Craft::$app->getRequest()->getBodyParam('description'),
         ];
 
@@ -285,6 +289,59 @@ class ContentTemplate extends Element
         } else {
             $projectConfig->set("contentTemplates.$this->uid", $config);
         }
+    }
+
+    /**
+     * Removes Neo / Matrix / Super Table block IDs from field values.
+     */
+    private function _serializedFieldValuesWithoutBlockIds(
+        ?array $serializedValues = null,
+        ?ElementInterface $containerElement = null
+    ): array {
+        if ($serializedValues === null) {
+            $serializedValues = $this->getSerializedFieldValues();
+        }
+
+        if ($containerElement === null) {
+            $containerElement = $this;
+        }
+
+        $elementsService = Craft::$app->getElements();
+        $fields = [];
+        $removeIdsFrom = [
+            NeoField::class,
+            MatrixField::class,
+            SuperTableField::class,
+        ];
+
+        foreach ($containerElement->getFieldLayout()->getCustomFieldElements() as $customFieldElement) {
+            $field = $customFieldElement->getField();
+            $fields[$field->handle] = $field;
+        }
+
+        foreach ($serializedValues as $fieldHandle => $fieldValue) {
+            if (!isset($fields[$fieldHandle])) {
+                // Assume property rather than field
+                continue;
+            }
+
+            if (!in_array(get_class($fields[$fieldHandle]), $removeIdsFrom)) {
+                continue;
+            }
+
+            $i = 1;
+
+            foreach ($serializedValues[$fieldHandle] as $oldBlockId => $blockValue) {
+                $blockValue['fields'] = $this->_serializedFieldValuesWithoutBlockIds(
+                    $blockValue['fields'],
+                    $elementsService->getElementById($oldBlockId),
+                );
+                $serializedValues[$fieldHandle]['new' . $i++] = $blockValue;
+                unset($serializedValues[$fieldHandle][$oldBlockId]);
+            }
+        }
+
+        return $serializedValues;
     }
 
     /**
@@ -426,8 +483,6 @@ class ContentTemplate extends Element
         $fields = [];
         $fields[] = Cp::textFieldHtml([
             'label' => Craft::t('app', 'Title'),
-            'siteId' => $this->siteId,
-            'translationDescription' => Craft::t('app', 'This field is translated for each site.'),
             'id' => 'title',
             'name' => 'title',
             'autocorrect' => false,
