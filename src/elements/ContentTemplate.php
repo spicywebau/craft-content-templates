@@ -277,18 +277,32 @@ class ContentTemplate extends Element
             return;
         }
 
-        $config = [
-            'title' => $this->title,
-            'type' => $this->getEntryType()->uid,
-            'content' => $this->_serializedFieldValuesWithoutBlockIds(),
-            'description' => $this->description ?? Craft::$app->getRequest()->getBodyParam('description'),
-        ];
+        $config = $this->getConfig();
 
         if ($this->getIsDraft()) {
             Plugin::$plugin->projectConfig->save($this->uid, $config);
         } else {
             $projectConfig->set("contentTemplates.$this->uid", $config);
         }
+    }
+
+    /**
+     * Returns this content template's config.
+     *
+     * @return array
+     */
+    public function getConfig(): array
+    {
+        $request = Craft::$app->getRequest();
+
+        return [
+            'title' => $this->title,
+            'type' => $this->getEntryType()->uid,
+            'content' => $this->_serializedFieldValuesWithoutBlockIds(),
+            'description' => method_exists($request, 'getBodyParam')
+                ? $this->description ?? Craft::$app->getRequest()->getBodyParam('description')
+                : $this->description,
+        ];
     }
 
     /**

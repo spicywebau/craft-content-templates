@@ -7,13 +7,15 @@ use craft\base\Plugin as BasePlugin;
 use craft\controllers\ElementsController;
 use craft\elements\Entry;
 use craft\events\DefineElementEditorHtmlEvent;
+use craft\events\RebuildConfigEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\Json;
+use craft\services\ProjectConfig;
 use craft\web\UrlManager;
 use Illuminate\Support\Collection;
 use spicyweb\contenttemplates\controllers\CpController;
 use spicyweb\contenttemplates\elements\ContentTemplate;
-use spicyweb\contenttemplates\services\ProjectConfig;
+use spicyweb\contenttemplates\services\ProjectConfig as PluginProjectConfig;
 use spicyweb\contenttemplates\web\assets\modal\ModalAsset;
 use yii\base\Event;
 
@@ -38,7 +40,7 @@ class Plugin extends BasePlugin
     {
         return [
             'components' => [
-                'projectConfig' => ProjectConfig::class,
+                'projectConfig' => PluginProjectConfig::class,
             ],
         ];
     }
@@ -59,6 +61,7 @@ class Plugin extends BasePlugin
         self::$plugin = $this;
         $this->hasCpSection = Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
         $this->_registerProjectConfigApply();
+        $this->_registerProjectConfigRebuild();
 
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerModal();
@@ -75,6 +78,22 @@ class Plugin extends BasePlugin
             ->onAdd('contentTemplates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
             ->onUpdate('contentTemplates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
             ->onRemove('contentTemplates.{uid}', [$this->projectConfig, 'handleDeletedContentTemplate']);
+    }
+
+    /**
+     * Registers an event listener for a project config rebuild, and provides content template data from the database.
+     */
+    private function _registerProjectConfigRebuild(): void
+    {
+        Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
+            $contentTemplateConfig = [];
+
+            foreach (ContentTemplate::find()->all() as $contentTemplate) {
+                $contentTemplateConfig[$contentTemplate->uid] = $contentTemplate->getConfig();
+            }
+
+            $event->config['contentTemplates'] = $contentTemplateConfig;
+        });
     }
 
     /**
