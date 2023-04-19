@@ -3,6 +3,7 @@
 namespace spicyweb\contenttemplates;
 
 use Craft;
+use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
 use craft\controllers\ElementsController;
 use craft\elements\Entry;
@@ -15,6 +16,7 @@ use craft\web\UrlManager;
 use Illuminate\Support\Collection;
 use spicyweb\contenttemplates\controllers\CpController;
 use spicyweb\contenttemplates\elements\ContentTemplate;
+use spicyweb\contenttemplates\models\Settings;
 use spicyweb\contenttemplates\services\ProjectConfig as PluginProjectConfig;
 use spicyweb\contenttemplates\web\assets\modal\ModalAsset;
 use yii\base\Event;
@@ -67,6 +69,14 @@ class Plugin extends BasePlugin
             $this->_registerModal();
             $this->_registerUrlRules();
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function createSettingsModel(): ?Model
+    {
+        return new Settings();
     }
 
     /**

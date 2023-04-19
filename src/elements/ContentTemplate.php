@@ -53,6 +53,7 @@ use benf\neo\Field as NeoField;
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\elements\Asset;
 use craft\elements\Entry;
 use craft\elements\User;
 use craft\fieldlayoutelements\entries\EntryTitleField;
@@ -83,6 +84,11 @@ class ContentTemplate extends Element
     public ?int $typeId = null;
 
     /**
+     * @var int|null The content template's preview asset ID.
+     */
+    public ?int $previewId = null;
+
+    /**
      * @var ?string The description of this content template.
      */
     public ?string $description = null;
@@ -96,6 +102,11 @@ class ContentTemplate extends Element
      * @var ?EntryType
      */
     private ?EntryType $_entryType = null;
+
+    /**
+     * @var Asset|null
+     */
+    private ?Asset $_preview = null;
 
     /**
      * @inheritdoc
@@ -277,6 +288,10 @@ class ContentTemplate extends Element
             return;
         }
 
+        $request = Craft::$app->getRequest();
+        $previewId = $request->getBodyParam('previewId') ?: null;
+        $this->previewId = $previewId ? reset($previewId) : null;
+        $this->description = $request->getBodyParam('description');
         $config = $this->getConfig();
 
         if ($this->getIsDraft()) {
@@ -287,6 +302,20 @@ class ContentTemplate extends Element
     }
 
     /**
+     * Gets this content template's preview asset, if one is set.
+     *
+     * @return Asset|null
+     */
+    public function getPreview(): ?Asset
+    {
+        if ($this->_preview === null && $this->previewId !== null) {
+            $this->_preview = Craft::$app->getAssets()->getAssetById($this->previewId);
+        }
+
+        return $this->_preview;
+    }
+
+    /**
      * Returns this content template's config.
      *
      * @return array
@@ -294,10 +323,22 @@ class ContentTemplate extends Element
     public function getConfig(): array
     {
         $request = Craft::$app->getRequest();
+        $preview = $this->getPreview();
+
+        if ($preview) {
+            $previewData = [
+                'volume' => $preview->getVolume()->uid,
+                'folderPath' => $preview->getFolder()->path,
+                'filename' => $preview->getFilename(),
+            ];
+        } else {
+            $previewData = null;
+        }
 
         return [
             'title' => $this->title,
             'type' => $this->getEntryType()->uid,
+            'preview' => $previewData,
             'content' => $this->_serializedFieldValuesWithoutBlockIds(),
             'description' => method_exists($request, 'getBodyParam')
                 ? $this->description ?? Craft::$app->getRequest()->getBodyParam('description')
@@ -494,6 +535,7 @@ class ContentTemplate extends Element
      */
     public function metaFieldsHtml(bool $static): string
     {
+        $preview = $this->getPreview();
         $fields = [];
         $fields[] = Cp::textFieldHtml([
             'label' => Craft::t('app', 'Title'),
@@ -504,6 +546,24 @@ class ContentTemplate extends Element
             'value' => $this->title,
             'disabled' => $static,
             'errors' => $this->getErrors('title'),
+        ]);
+        $fields[] =  Cp::elementSelectFieldHtml([
+            'label' => Craft::t('content-templates', 'Preview'),
+            'id' => 'previewId',
+            'name' => 'previewId',
+            'elementType' => Asset::class,
+            'selectionLabel' => Craft::t('app', 'Choose'),
+            'sources' => Plugin::$plugin->getSettings()->previewSources,
+            'viewMode' => 'large',
+            'criteria' => [
+                'kind' => 'image',
+            ],
+            'limit' => 1,
+            'value' => $preview ? [$preview->id] : null,
+            'elements' => $preview ? [$preview] : [],
+            'disabled' => $static,
+            'describedBy' => 'previewId-label',
+            'errors' => $this->getErrors('previewId'),
         ]);
         $fields[] = Cp::textareaFieldHtml([
             'label' => Craft::t('content-templates', 'Description'),

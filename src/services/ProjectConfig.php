@@ -3,7 +3,9 @@
 namespace spicyweb\contenttemplates\services;
 
 use Craft;
+use craft\db\Query;
 use craft\db\Table;
+use craft\elements\Asset;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
@@ -65,8 +67,30 @@ class ProjectConfig extends Component
                 $elementsService->saveElement($contentTemplate);
             }
 
+            if (!isset($data['preview'])) {
+                $preview = null;
+            } elseif (is_string($data['preview'])) {
+                $preview = Craft::$app->getElements()->getElementByUid($data['preview'], Asset::class);
+            } else {
+                $volumeId = Db::idByUid(Table::VOLUMES, $data['preview']['volume']);
+                $folderId = (new Query())
+                    ->select(['id'])
+                    ->from(Table::VOLUMEFOLDERS)
+                    ->where([
+                        'volumeId' => $volumeId,
+                        'path' => $data['preview']['folderPath'],
+                    ])
+                    ->scalar();
+                $preview = Asset::find()
+                    ->volumeId($volumeId)
+                    ->folderId($folderId)
+                    ->filename($data['preview']['filename'])
+                    ->one();
+            }
+
             $record->id = $id;
             $record->typeId = Db::idByUid(Table::ENTRYTYPES, $data['type']);
+            $record->previewId = $preview?->id ?? null;
             $record->description = $data['description'] ?? null;
             $record->save();
         });
