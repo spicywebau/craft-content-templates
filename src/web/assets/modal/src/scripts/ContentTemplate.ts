@@ -14,6 +14,12 @@ export default class ContentTemplate {
   public readonly title: string
 
   /**
+   * The content template preview URL.
+   * @public
+   */
+  public readonly preview?: string
+
+  /**
    * The content template description.
    * @public
    */
@@ -33,6 +39,7 @@ export default class ContentTemplate {
   constructor (settings: ContentTemplateSettings) {
     this.id = settings.id
     this.title = settings.title
+    this.preview = settings.preview
     this.description = settings.description
     this.$button = $(this._button())
   }
@@ -45,6 +52,10 @@ export default class ContentTemplate {
   private _button (): JQuery<HTMLElement> {
     const $button = $('<button />')
       .append($('<p />').text(this.title))
+
+    if (typeof this.preview !== 'undefined') {
+      $button.append($('<img />').attr('src', this.preview))
+    }
 
     if (this.description !== null) {
       $button.append($('<p />').text(this.description))
