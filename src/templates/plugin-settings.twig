@@ -1,0 +1,13 @@
+{% import '_includes/forms' as forms %}
+
+<div class="settings">
+    {{ forms.checkboxSelectField({
+        label: 'Preview sources'|t('neo'),
+        instructions: 'Which sources do you want to select content template previews from?'|t('content-templates'),
+        id: 'previewSources',
+        name: 'previewSources',
+        options: previewSourceOptions,
+        values: settings.previewSources,
+        showAllOption: true,
+    }) }}
+</div>

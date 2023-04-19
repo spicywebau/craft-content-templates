@@ -10,6 +10,7 @@ use craft\elements\Entry;
 use craft\events\DefineElementEditorHtmlEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\fields\Assets;
 use craft\helpers\Json;
 use craft\services\ProjectConfig;
 use craft\web\UrlManager;
@@ -34,6 +35,11 @@ class Plugin extends BasePlugin
      * @var Plugin|null
      */
     public static ?Plugin $plugin = null;
+
+    /**
+     * @inheritdoc
+     */
+    public bool $hasCpSettings = true;
 
     /**
      * @inheritdoc
@@ -77,6 +83,19 @@ class Plugin extends BasePlugin
     protected function createSettingsModel(): ?Model
     {
         return new Settings();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function settingsHtml(): ?string
+    {
+        return Craft::$app->getView()->renderTemplate('content-templates/plugin-settings', [
+            'settings' => $this->getSettings(),
+            'previewSourceOptions' => Craft::$app->getFields()
+                ->createField(Assets::class)
+                ->getSourceOptions(),
+        ]);
     }
 
     /**
