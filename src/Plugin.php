@@ -99,6 +99,14 @@ class Plugin extends BasePlugin
     }
 
     /**
+     * @inheritdoc
+     */
+    protected function cpNavIconPath(): ?string
+    {
+        return $this->getBasePath() . DIRECTORY_SEPARATOR . 'icon.svg';
+    }
+
+    /**
      * Listens for content template updates in the project config to apply them to the database.
      */
     private function _registerProjectConfigApply(): void
