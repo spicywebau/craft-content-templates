@@ -50,9 +50,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace spicyweb\contenttemplates\elements;
 
 use benf\neo\Field as NeoField;
+use benf\neo\Plugin as Neo;
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\db\Query;
+use craft\db\Table;
 use craft\elements\Asset;
 use craft\elements\Entry;
 use craft\elements\User;
@@ -66,6 +69,7 @@ use craft\models\Section;
 use spicyweb\contenttemplates\elements\db\ContentTemplateQuery;
 use spicyweb\contenttemplates\Plugin;
 use verbb\supertable\fields\SuperTableField;
+use verbb\supertable\SuperTable;
 use yii\db\Expression;
 use yii\web\Response;
 
@@ -351,17 +355,18 @@ class ContentTemplate extends Element
      */
     private function _serializedFieldValuesWithoutBlockIds(
         ?array $serializedValues = null,
-        ?ElementInterface $containerElement = null
+        ?int $fieldLayoutId = null
     ): array {
         if ($serializedValues === null) {
             $serializedValues = $this->getSerializedFieldValues();
         }
 
-        if ($containerElement === null) {
-            $containerElement = $this;
+        if ($fieldLayoutId === null) {
+            $fieldLayoutId = $this->getEntryType()->fieldLayoutId;
         }
 
         $elementsService = Craft::$app->getElements();
+        $fieldsService = Craft::$app->getFields();
         $fields = [];
         $removeIdsFrom = [
             NeoField::class,
@@ -369,27 +374,51 @@ class ContentTemplate extends Element
             SuperTableField::class,
         ];
 
-        foreach ($containerElement->getFieldLayout()->getCustomFieldElements() as $customFieldElement) {
+        foreach ($fieldsService->getLayoutById($fieldLayoutId)->getCustomFieldElements() as $customFieldElement) {
             $field = $customFieldElement->getField();
             $fields[$field->handle] = $field;
         }
 
-        foreach ($serializedValues as $fieldHandle => $fieldValue) {
+        foreach (array_keys($serializedValues) as $fieldHandle) {
             if (!isset($fields[$fieldHandle])) {
                 // Assume property rather than field
                 continue;
             }
 
-            if (!in_array(get_class($fields[$fieldHandle]), $removeIdsFrom)) {
+            $field = $fields[$fieldHandle];
+            $fieldClass = get_class($field);
+
+            if (!in_array($fieldClass, $removeIdsFrom)) {
                 continue;
             }
 
             $i = 1;
 
             foreach ($serializedValues[$fieldHandle] as $oldBlockId => $blockValue) {
+                $blockLayoutId = match ($fieldClass) {
+                    NeoField::class => (new Query())
+                        ->select(['fieldLayoutId'])
+                        ->from('{{%neoblocktypes}}')
+                        ->where([
+                            'fieldId' => $field->id,
+                            'handle' => $blockValue['type'],
+                        ])
+                        ->scalar(),
+                    MatrixField::class => (new Query())
+                        ->select(['fieldLayoutId'])
+                        ->from(Table::MATRIXBLOCKTYPES)
+                        ->where([
+                            'fieldId' => $field->id,
+                            'handle' => $blockValue['type'],
+                        ])
+                        ->scalar(),
+                    SuperTableField::class => SuperTable::$plugin->getService()
+                        ->getBlockTypeById($blockValue['type'])
+                        ->fieldLayoutId,
+                };
                 $blockValue['fields'] = $this->_serializedFieldValuesWithoutBlockIds(
                     $blockValue['fields'],
-                    $elementsService->getElementById($oldBlockId),
+                    $blockLayoutId,
                 );
                 $serializedValues[$fieldHandle]['new' . $i++] = $blockValue;
                 unset($serializedValues[$fieldHandle][$oldBlockId]);
