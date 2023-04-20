@@ -1,5 +1,6 @@
 import ContentTemplate from './ContentTemplate'
 import ContentTemplateSettings from './ContentTemplateSettings'
+import Icon from './Icon'
 import '../styles/main.scss'
 
 declare global {
@@ -24,6 +25,7 @@ class ContentTemplatesModal {
     this.contentTemplates = [
       new ContentTemplate({
         title: Craft.t('content-templates', 'Blank'),
+        preview: Icon.Blank,
         description: Craft.t('content-templates', 'Start off with a clean slate.')
       })
     ]

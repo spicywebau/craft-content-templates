@@ -1,4 +1,5 @@
 import ContentTemplateSettings from './ContentTemplateSettings'
+import Icon from './Icon'
 
 export default class ContentTemplate {
   /**
@@ -17,7 +18,7 @@ export default class ContentTemplate {
    * The content template preview URL.
    * @public
    */
-  public readonly preview?: string
+  public readonly preview: string|Icon
 
   /**
    * The content template description.
@@ -39,7 +40,7 @@ export default class ContentTemplate {
   constructor (settings: ContentTemplateSettings) {
     this.id = settings.id
     this.title = settings.title
-    this.preview = settings.preview
+    this.preview = settings.preview ?? Icon.Default
     this.description = settings.description
     this.$button = $(this._button())
   }
@@ -53,8 +54,17 @@ export default class ContentTemplate {
     const $button = $('<button />')
       .append($('<p />').text(this.title))
 
-    if (typeof this.preview !== 'undefined') {
-      $button.append($('<img />').attr('src', this.preview))
+    const $previewContainer = $('<div />').appendTo($button)
+
+    switch (this.preview) {
+      case Icon.Blank:
+        $button.addClass('is-blank')
+        break
+      case Icon.Default:
+        $button.addClass('is-default')
+        break
+      default:
+        $previewContainer.append($('<img />').attr('src', this.preview))
     }
 
     if (this.description !== null) {
