@@ -374,9 +374,11 @@ class ContentTemplate extends Element
             SuperTableField::class,
         ];
 
-        foreach ($fieldsService->getLayoutById($fieldLayoutId)->getCustomFieldElements() as $customFieldElement) {
-            $field = $customFieldElement->getField();
-            $fields[$field->handle] = $field;
+        if ($fieldLayoutId !== null) {
+            foreach ($fieldsService->getLayoutById($fieldLayoutId)?->getCustomFieldElements() ?? [] as $customFieldElement) {
+                $field = $customFieldElement->getField();
+                $fields[$field->handle] = $field;
+            }
         }
 
         foreach (array_keys($serializedValues) as $fieldHandle) {
