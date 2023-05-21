@@ -584,7 +584,7 @@ class ContentTemplate extends Element
             'name' => 'previewId',
             'elementType' => Asset::class,
             'selectionLabel' => Craft::t('app', 'Choose'),
-            'sources' => Plugin::$plugin->getSettings()->previewSources,
+            'sources' => '*',
             'viewMode' => 'large',
             'criteria' => [
                 'kind' => 'image',

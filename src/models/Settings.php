@@ -14,7 +14,7 @@ use craft\base\Model;
 class Settings extends Model
 {
     /**
-     * @var string|array|null The asset sources content template previews can be selected from.
+     * @var string[] Folder path(s) content template preview images can be selected from.
      */
-    public string|array|null $previewSources = '*';
+    public array $previewSource = [];
 }

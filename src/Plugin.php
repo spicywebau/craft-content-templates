@@ -92,9 +92,6 @@ class Plugin extends BasePlugin
     {
         return Craft::$app->getView()->renderTemplate('content-templates/plugin-settings', [
             'settings' => $this->getSettings(),
-            'previewSourceOptions' => Craft::$app->getFields()
-                ->createField(Assets::class)
-                ->getSourceOptions(),
         ]);
     }
 
