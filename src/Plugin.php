@@ -166,10 +166,7 @@ class Plugin extends BasePlugin
                         'contentTemplates' => $contentTemplates->map(fn($contentTemplate) => [
                             'id' => $contentTemplate->id,
                             'title' => $contentTemplate->title,
-                            'preview' => $contentTemplate->getPreview()?->getUrl([
-                                'width' => 232,
-                                'height' => 232,
-                            ]),
+                            'preview' => $contentTemplate->getPreviewImageUrl(),
                             'description' => $contentTemplate->description,
                         ])->all(),
                     ];

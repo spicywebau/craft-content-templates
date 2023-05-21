@@ -56,12 +56,13 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\db\Table;
-use craft\elements\Asset;
 use craft\elements\Entry;
 use craft\elements\User;
 use craft\fieldlayoutelements\entries\EntryTitleField;
 use craft\fields\Matrix as MatrixField;
+use craft\helpers\App;
 use craft\helpers\Cp;
+use craft\helpers\FileHelper;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
 use craft\models\FieldLayout;
@@ -88,9 +89,9 @@ class ContentTemplate extends Element
     public ?int $typeId = null;
 
     /**
-     * @var int|null The content template's preview asset ID.
+     * @var string|null The content template's preview image filename.
      */
-    public ?int $previewId = null;
+    public ?string $previewImage = null;
 
     /**
      * @var ?string The description of this content template.
@@ -106,11 +107,6 @@ class ContentTemplate extends Element
      * @var ?EntryType
      */
     private ?EntryType $_entryType = null;
-
-    /**
-     * @var Asset|null
-     */
-    private ?Asset $_preview = null;
 
     /**
      * @inheritdoc
@@ -293,8 +289,7 @@ class ContentTemplate extends Element
         }
 
         $request = Craft::$app->getRequest();
-        $previewId = $request->getBodyParam('previewId') ?: null;
-        $this->previewId = $previewId ? reset($previewId) : null;
+        $this->previewImage = $request->getBodyParam('previewImage') ?: null;
         $this->description = $request->getBodyParam('description');
         $config = $this->getConfig();
 
@@ -306,17 +301,45 @@ class ContentTemplate extends Element
     }
 
     /**
-     * Gets this content template's preview asset, if one is set.
+     * Gets this content template's preview image, if one is set.
      *
-     * @return Asset|null
+     * @return string|null
      */
-    public function getPreview(): ?Asset
+    public function getPreviewImageUrl(): ?string
     {
-        if ($this->_preview === null && $this->previewId !== null) {
-            $this->_preview = Craft::$app->getAssets()->getAssetById($this->previewId);
+        if (!$this->previewImage) {
+            return null;
         }
 
-        return $this->_preview;
+        $previewSourceSetting = Plugin::$plugin->getSettings()->previewSource;
+        $previewSource = reset($previewSourceSetting);
+
+        if (!$previewSource) {
+            return null;
+        }
+
+        $generalConfig = Craft::$app->getConfig()->getGeneral();
+        $resourceBasePath = rtrim(App::parseEnv($generalConfig->resourceBasePath), DIRECTORY_SEPARATOR);
+        $resourceBaseUrl = rtrim(App::parseEnv($generalConfig->resourceBaseUrl), DIRECTORY_SEPARATOR);
+        FileHelper::createDirectory($resourceBasePath . DIRECTORY_SEPARATOR . 'content-templates');
+        $imagePath = rtrim(App::parseEnv($previewSource), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($this->previewImage, DIRECTORY_SEPARATOR);
+        $extension = FileHelper::getExtensionByMimeType(FileHelper::getMimeType($imagePath));
+        $relativeImageDest = 'content-templates' . DIRECTORY_SEPARATOR . hash('sha256', $imagePath) . '.' . $extension;
+        $imageDestPath = $resourceBasePath . DIRECTORY_SEPARATOR . $relativeImageDest;
+        $imageDestUrl = $resourceBaseUrl . DIRECTORY_SEPARATOR . $relativeImageDest;
+
+        if (!file_exists($imageDestPath)) {
+            try {
+                Craft::$app->getImages()
+                    ->loadImage($imagePath)
+                    ->scaleAndCrop(232, 232)
+                    ->saveAs($imageDestPath);
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+
+        return $imageDestUrl;
     }
 
     /**
@@ -327,22 +350,11 @@ class ContentTemplate extends Element
     public function getConfig(): array
     {
         $request = Craft::$app->getRequest();
-        $preview = $this->getPreview();
-
-        if ($preview) {
-            $previewData = [
-                'volume' => $preview->getVolume()->uid,
-                'folderPath' => $preview->getFolder()->path,
-                'filename' => $preview->getFilename(),
-            ];
-        } else {
-            $previewData = null;
-        }
 
         return [
             'title' => $this->title,
             'type' => $this->getEntryType()->uid,
-            'preview' => $previewData,
+            'previewImage' => $this->previewImage,
             'content' => $this->_serializedFieldValuesWithoutBlockIds(),
             'description' => method_exists($request, 'getBodyParam')
                 ? $this->description ?? Craft::$app->getRequest()->getBodyParam('description')
@@ -566,7 +578,6 @@ class ContentTemplate extends Element
      */
     public function metaFieldsHtml(bool $static): string
     {
-        $preview = $this->getPreview();
         $fields = [];
         $fields[] = Cp::textFieldHtml([
             'label' => Craft::t('app', 'Title'),
@@ -578,23 +589,16 @@ class ContentTemplate extends Element
             'disabled' => $static,
             'errors' => $this->getErrors('title'),
         ]);
-        $fields[] =  Cp::elementSelectFieldHtml([
-            'label' => Craft::t('content-templates', 'Preview'),
-            'id' => 'previewId',
-            'name' => 'previewId',
-            'elementType' => Asset::class,
-            'selectionLabel' => Craft::t('app', 'Choose'),
-            'sources' => '*',
-            'viewMode' => 'large',
-            'criteria' => [
-                'kind' => 'image',
-            ],
-            'limit' => 1,
-            'value' => $preview ? [$preview->id] : null,
-            'elements' => $preview ? [$preview] : [],
+        // TODO: dropdown of valid image files in the selected preview source
+        $fields[] =  Cp::textFieldHtml([
+            'label' => Craft::t('content-templates', 'Preview image'),
+            'id' => 'previewImage',
+            'name' => 'previewImage',
+            'autocorrect' => false,
+            'autocapitalize' => false,
+            'value' => $this->previewImage,
             'disabled' => $static,
-            'describedBy' => 'previewId-label',
-            'errors' => $this->getErrors('previewId'),
+            'errors' => $this->getErrors('previewImage'),
         ]);
         $fields[] = Cp::textareaFieldHtml([
             'label' => Craft::t('content-templates', 'Description'),

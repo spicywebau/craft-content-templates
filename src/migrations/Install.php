@@ -21,14 +21,13 @@ class Install extends Migration
         $this->createTable('{{%contenttemplates}}', [
             'id' => $this->integer()->notNull(),
             'typeId' => $this->integer()->notNull(),
-            'previewId' => $this->integer(),
+            'previewImage' => $this->string(),
             'description' => $this->string(),
             'PRIMARY KEY([[id]])',
         ]);
         $this->createIndex(null, '{{%contenttemplates}}', ['typeId'], false);
         $this->addForeignKey(null, '{{%contenttemplates}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%contenttemplates}}', ['typeId'], '{{%entrytypes}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%contenttemplates}}', ['previewId'], '{{%assets}}', ['id'], 'CASCADE', null);
 
         return true;
     }

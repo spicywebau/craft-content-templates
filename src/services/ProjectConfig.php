@@ -90,7 +90,7 @@ class ProjectConfig extends Component
 
             $record->id = $id;
             $record->typeId = Db::idByUid(Table::ENTRYTYPES, $data['type']);
-            $record->previewId = $preview?->id ?? null;
+            $record->previewImage = $data['previewImage'] ?? null;
             $record->description = $data['description'] ?? null;
             $record->save();
         });
