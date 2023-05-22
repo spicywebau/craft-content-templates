@@ -14,7 +14,18 @@ use craft\base\Model;
 class Settings extends Model
 {
     /**
-     * @var string[] Folder path(s) content template preview images can be selected from.
+     * @var string The folder path that content template preview images can be selected from. Defaults to `@webroot`.
      */
-    public array $previewSource = [];
+    public string $previewSource = '@webroot';
+
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = [['previewSource'], 'required'];
+
+        return $rules;
+    }
 }

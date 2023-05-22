@@ -2,13 +2,14 @@
 
 <div class="settings">
     {{ forms.autosuggestField({
-        label: 'Preview source'|t('content-templates'),
-        instructions: 'Which folder do you want to select content template previews from?'|t('content-templates'),
+        label: 'Preview Source'|t('content-templates'),
+        instructions: 'The path of the folder to select content template previews from.'|t('content-templates'),
         id: 'previewSource',
-        name: 'previewSource[]',
+        name: 'previewSource',
         suggestEnvVars: true,
         suggestAliases: true,
-        value: settings.previewSource is not empty ? settings.previewSource[0] : '',
+        value: settings.previewSource,
         required: true,
+        errors: settings.getErrors('previewSource'),
     }) }}
 </div>
