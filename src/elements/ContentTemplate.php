@@ -525,6 +525,7 @@ class ContentTemplate extends Element
     {
         $entryType = $this->getEntryType();
         $mockEntry = new Entry();
+        $mockEntry->id = -1;
         $mockEntry->sectionId = $entryType->sectionId;
         $mockEntry->setTypeId($entryType->id);
 
