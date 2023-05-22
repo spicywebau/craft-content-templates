@@ -564,6 +564,15 @@ class ContentTemplate extends Element
     /**
      * @inheritdoc
      */
+    public function canCreateDrafts(User $user): bool
+    {
+        // Everyone with view permissions can create drafts
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected function cpEditUrl(): ?string
     {
         $entryType = $this->getEntryType();
