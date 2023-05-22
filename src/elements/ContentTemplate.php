@@ -303,37 +303,36 @@ class ContentTemplate extends Element
     /**
      * Gets this content template's preview image, if one is set.
      *
+     * @param array|null $transform The width and height to scale/crop the image to.
      * @return string|null
      */
-    public function getPreviewImageUrl(): ?string
+    public function getPreviewImageUrl(?array $transform = null): ?string
     {
         if (!$this->previewImage) {
             return null;
         }
 
-        $previewSourceSetting = Plugin::$plugin->getSettings()->previewSource;
-        $previewSource = reset($previewSourceSetting);
-
-        if (!$previewSource) {
-            return null;
-        }
-
+        $previewSource = Plugin::$plugin->getSettings()->previewSource;
         $generalConfig = Craft::$app->getConfig()->getGeneral();
         $resourceBasePath = rtrim(App::parseEnv($generalConfig->resourceBasePath), DIRECTORY_SEPARATOR);
         $resourceBaseUrl = rtrim(App::parseEnv($generalConfig->resourceBaseUrl), DIRECTORY_SEPARATOR);
         FileHelper::createDirectory($resourceBasePath . DIRECTORY_SEPARATOR . 'content-templates');
         $imagePath = rtrim(App::parseEnv($previewSource), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($this->previewImage, DIRECTORY_SEPARATOR);
         $extension = FileHelper::getExtensionByMimeType(FileHelper::getMimeType($imagePath));
-        $relativeImageDest = 'content-templates' . DIRECTORY_SEPARATOR . hash('sha256', $imagePath) . '.' . $extension;
+        $size = $transform !== null ? "{$transform['width']}x{$transform['height']}" : 'full';
+        $relativeImageDest = 'content-templates' . DIRECTORY_SEPARATOR . hash('sha256', $imagePath) . "-$size.$extension";
         $imageDestPath = $resourceBasePath . DIRECTORY_SEPARATOR . $relativeImageDest;
         $imageDestUrl = $resourceBaseUrl . DIRECTORY_SEPARATOR . $relativeImageDest;
 
         if (!file_exists($imageDestPath)) {
             try {
-                Craft::$app->getImages()
-                    ->loadImage($imagePath)
-                    ->scaleAndCrop(232, 232)
-                    ->saveAs($imageDestPath);
+                $image = Craft::$app->getImages()->loadImage($imagePath);
+
+                if ($transform !== null) {
+                    $image->scaleAndCrop($transform['width'], $transform['height']);
+                }
+
+                $image->saveAs($imageDestPath);
             } catch (\Exception $e) {
                 return null;
             }
