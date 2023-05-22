@@ -2,6 +2,8 @@ $buttonMargin: var(--m);
 
 .ct {
   &_modal {
+    overflow-y: auto;
+
     > .spinner {
       position: absolute;
       top: 50%;
