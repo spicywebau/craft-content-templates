@@ -576,6 +576,14 @@ class ContentTemplate extends Element
     /**
      * @inheritdoc
      */
+    public function getPostEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('content-templates');
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function metaFieldsHtml(bool $static): string
     {
         $fields = [];
