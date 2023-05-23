@@ -47,7 +47,10 @@ class ModalAsset extends AssetBundle
     public function registerAssetFiles($view): void
     {
         $view->registerTranslations('content-templates', [
-            // TODO
+            'An unknown error occurred.',
+            'Blank',
+            'Choose a template',
+            'Start off with a clean slate.',
         ]);
 
         parent::registerAssetFiles($view);
