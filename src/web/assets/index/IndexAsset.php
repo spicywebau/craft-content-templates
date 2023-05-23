@@ -40,7 +40,10 @@ class IndexAsset extends AssetBundle
     public function registerAssetFiles($view): void
     {
         $view->registerTranslations('content-templates', [
+            'New {entryType} content template',
             'New content template',
+            'New content template of the {entryType} type',
+            'New content template, choose an entry type',
         ]);
 
         parent::registerAssetFiles($view);

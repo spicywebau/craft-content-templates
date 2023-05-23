@@ -156,7 +156,7 @@ const ContentTemplateIndex = Craft.BaseElementIndex.extend({
         class: 'btn submit menubtn btngroup-btn-last',
         'aria-controls': menuId,
         'data-disclosure-trigger': '',
-        'aria-label': Craft.t('app', 'New content template, choose an entry type')
+        'aria-label': Craft.t('content-templates', 'New content template, choose an entry type')
       }).appendTo(this.$newTemplateBtnGroup)
     }
 
@@ -180,7 +180,7 @@ const ContentTemplateIndex = Craft.BaseElementIndex.extend({
             role: anchorRole === 'button' ? 'button' : null,
             href: '#', // Allows for click listener and tab order
             type: anchorRole === 'button' ? 'button' : null,
-            text: Craft.t('app', 'New {entryType} content template', {
+            text: Craft.t('content-templates', 'New {entryType} content template', {
               entryType: entryType.name
             })
           }).appendTo($li)
