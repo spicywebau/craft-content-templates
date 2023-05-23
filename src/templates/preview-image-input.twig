@@ -1,0 +1,35 @@
+{% set value = value ?: null %}
+
+<div class="ct_preview-image-select" data-preview-image-select>
+    <div class="ct_preview-image-select-show" data-preview-image-select-show>
+        <img src="{{ initialPreviewImageUrl ?? '' }}">
+        {% if value != null %}
+            <p>{{ value }}</p>
+        {% else %}
+            <p>{{ 'None set'|t('content-templates') }}</p>
+        {% endif %}
+    </div>
+    {% if not disabled %}
+        <input type="hidden" name="previewImage" value="{{ value ?? '' }}">
+        <div class="btn dashed add icon menubtn" data-preview-image-select-set>
+            {% if value == null %}
+                {{ 'Add'|t('content-templates') }}
+            {% else %}
+                {{ 'Replace'|t('content-templates') }}
+            {% endif %}
+        </div>
+        <div class="menu ct_preview-image-select-menu">
+            <ul class="padded">
+                {% for filename, previewUrl in previewImageUrls %}
+                    <li>
+                        <a aria-label="{{ filename }}" data-preview-image-select-item>
+                            <img src="{{ previewUrl }}">
+                            <span>{{ filename }}</span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="btn dashed delete icon{{ value == null ? ' hidden' }}" data-preview-image-select-remove>{{ 'Remove'|t('content-templates') }}</div>
+    {% endif %}
+</div>

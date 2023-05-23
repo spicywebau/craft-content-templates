@@ -4,7 +4,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 module.exports = {
   entry: {
     index: path.resolve(__dirname, 'src/web/assets/index/src/scripts/main.ts'),
-    modal: path.resolve(__dirname, 'src/web/assets/modal/src/scripts/main.ts')
+    modal: path.resolve(__dirname, 'src/web/assets/modal/src/scripts/main.ts'),
+    previewimageselect: path.resolve(__dirname, 'src/web/assets/previewimageselect/src/scripts/main.ts')
   },
   output: {
     path: path.resolve(__dirname, 'src/web/assets'),

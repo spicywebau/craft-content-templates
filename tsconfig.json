@@ -12,6 +12,9 @@
     "src/web/assets/index/src/scripts/main.ts",
     "src/web/assets/index/src/scripts/types/Craft.d.ts",
     "src/web/assets/index/src/scripts/types/Garnish.d.ts",
-    "src/web/assets/modal/src/scripts/main.ts"
+    "src/web/assets/modal/src/scripts/main.ts",
+    "src/web/assets/previewimageselect/src/scripts/main.ts",
+    "src/web/assets/previewimageselect/src/scripts/PreviewImageSelect.ts",
+    "src/web/assets/previewimageselect/src/scripts/PreviewImageSelectItem.ts"
   ]
 }

@@ -69,6 +69,7 @@ use craft\models\FieldLayout;
 use craft\models\Section;
 use spicyweb\contenttemplates\elements\db\ContentTemplateQuery;
 use spicyweb\contenttemplates\Plugin;
+use spicyweb\contenttemplates\web\assets\previewimageselect\PreviewImageSelectAsset;
 use verbb\supertable\fields\SuperTableField;
 use verbb\supertable\SuperTable;
 use yii\db\Expression;
@@ -301,44 +302,16 @@ class ContentTemplate extends Element
     }
 
     /**
-     * Gets this content template's preview image, if one is set.
+     * Gets the URL for this content template's preview image, if one is set.
      *
      * @param array|null $transform The width and height to scale/crop the image to.
      * @return string|null
      */
     public function getPreviewImageUrl(?array $transform = null): ?string
     {
-        if (!$this->previewImage) {
-            return null;
-        }
-
-        $previewSource = Plugin::$plugin->getSettings()->previewSource;
-        $generalConfig = Craft::$app->getConfig()->getGeneral();
-        $resourceBasePath = rtrim(App::parseEnv($generalConfig->resourceBasePath), DIRECTORY_SEPARATOR);
-        $resourceBaseUrl = rtrim(App::parseEnv($generalConfig->resourceBaseUrl), DIRECTORY_SEPARATOR);
-        FileHelper::createDirectory($resourceBasePath . DIRECTORY_SEPARATOR . 'content-templates');
-        $imagePath = rtrim(App::parseEnv($previewSource), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($this->previewImage, DIRECTORY_SEPARATOR);
-        $extension = FileHelper::getExtensionByMimeType(FileHelper::getMimeType($imagePath));
-        $size = $transform !== null ? "{$transform['width']}x{$transform['height']}" : 'full';
-        $relativeImageDest = 'content-templates' . DIRECTORY_SEPARATOR . hash('sha256', $imagePath) . "-$size.$extension";
-        $imageDestPath = $resourceBasePath . DIRECTORY_SEPARATOR . $relativeImageDest;
-        $imageDestUrl = $resourceBaseUrl . DIRECTORY_SEPARATOR . $relativeImageDest;
-
-        if (!file_exists($imageDestPath)) {
-            try {
-                $image = Craft::$app->getImages()->loadImage($imagePath);
-
-                if ($transform !== null) {
-                    $image->scaleAndCrop($transform['width'], $transform['height']);
-                }
-
-                $image->saveAs($imageDestPath);
-            } catch (\Exception $e) {
-                return null;
-            }
-        }
-
-        return $imageDestUrl;
+        return $this->previewImage
+            ? Plugin::$plugin->previewImages->getPreviewImageUrl($this->previewImage, $transform)
+            : null;
     }
 
     /**
@@ -606,17 +579,52 @@ class ContentTemplate extends Element
             'disabled' => $static,
             'errors' => $this->getErrors('title'),
         ]);
-        // TODO: dropdown of valid image files in the selected preview source
-        $fields[] =  Cp::textFieldHtml([
-            'label' => Craft::t('content-templates', 'Preview image'),
+
+        // Get the preview image URLs for the add/replace menu, and also to store the valid URL for the set image
+        $previewSource = App::parseEnv(Plugin::$plugin->getSettings()->previewSource);
+        $previewImagePaths = FileHelper::findFiles($previewSource, [
+            'only' => [
+                '*.jpeg',
+                '*.jpg',
+                '*.png',
+                '*.svg',
+            ],
+        ]);
+        $previewImageUrls = [];
+        $setPreviewImageUrl = null;
+
+        foreach ($previewImagePaths as $path) {
+            $relativePath = substr($path, strlen($previewSource) + 1);
+            $previewImageUrl = Plugin::$plugin->previewImages->getPreviewImageUrl(
+                substr($path, strlen($previewSource) + 1),
+                [
+                    'width' => 100,
+                    'height' => 100,
+                ]
+            );
+            $previewImageUrls[$relativePath] = $previewImageUrl;
+
+            if ($this->previewImage !== null && $this->previewImage === $relativePath) {
+                $setPreviewImageUrl = $previewImageUrl;
+            }
+        }
+
+        if (!$static) {
+            Craft::$app->getView()->registerAssetBundle(PreviewImageSelectAsset::class);
+        }
+
+        $fields[] =  Cp::fieldHtml('template:content-templates/preview-image-input', [
+            'label' => Craft::t('content-templates', 'Preview Image'),
             'id' => 'previewImage',
             'name' => 'previewImage',
-            'autocorrect' => false,
-            'autocapitalize' => false,
-            'value' => $this->previewImage,
+            // If $setPreviewImageUrl is still null, the current previewImage is invalid
+            'value' => $setPreviewImageUrl !== null ? $this->previewImage : null,
+            'initialPreviewImageUrl' => $setPreviewImageUrl,
+            'previewImageUrls' => $previewImageUrls,
             'disabled' => $static,
             'errors' => $this->getErrors('previewImage'),
         ]);
+
         $fields[] = Cp::textareaFieldHtml([
             'label' => Craft::t('content-templates', 'Description'),
             'id' => 'description',

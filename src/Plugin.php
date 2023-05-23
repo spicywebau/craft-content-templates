@@ -18,6 +18,7 @@ use Illuminate\Support\Collection;
 use spicyweb\contenttemplates\controllers\CpController;
 use spicyweb\contenttemplates\elements\ContentTemplate;
 use spicyweb\contenttemplates\models\Settings;
+use spicyweb\contenttemplates\services\PreviewImages;
 use spicyweb\contenttemplates\services\ProjectConfig as PluginProjectConfig;
 use spicyweb\contenttemplates\web\assets\modal\ModalAsset;
 use yii\base\Event;
@@ -48,6 +49,7 @@ class Plugin extends BasePlugin
     {
         return [
             'components' => [
+                'previewImages' => PreviewImages::class,
                 'projectConfig' => PluginProjectConfig::class,
             ],
         ];
