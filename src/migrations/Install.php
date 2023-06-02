@@ -29,6 +29,14 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%contenttemplates}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%contenttemplates}}', ['typeId'], '{{%entrytypes}}', ['id'], 'CASCADE', null);
 
+        $this->createTable('{{%contenttemplatesstructures}}', [
+            'typeId' => $this->integer()->notNull(),
+            'structureId' => $this->integer()->notNull(),
+            'PRIMARY KEY([[typeId]])',
+        ]);
+        $this->createIndex(null, '{{%contenttemplatesstructures}}', ['typeId'], false);
+        $this->addForeignKey(null, '{{%contenttemplatesstructures}}', ['typeId'], '{{%entrytypes}}', ['id'], 'CASCADE', null);
+
         return true;
     }
 
@@ -38,6 +46,7 @@ class Install extends Migration
     public function safeDown()
     {
         $this->dropTableIfExists('{{%contenttemplates}}');
+        $this->dropTableIfExists('{{%contenttemplatesstructures}}');
 
         return true;
     }

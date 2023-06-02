@@ -100,6 +100,11 @@ class ContentTemplate extends Element
     public ?string $description = null;
 
     /**
+     * @var ?int The structure ID for this content template.
+     */
+    public ?int $structureId = null;
+
+    /**
      * @var ?Section
      */
     private ?Section $_section = null;
@@ -198,7 +203,7 @@ class ContentTemplate extends Element
 
         foreach (Craft::$app->getSections()->getAllEntryTypes() as $entryType) {
             $section = $entryType->getSection();
-            $sources[] = [
+            $source = [
                 'key' => 'entryType:' . $entryType->uid,
                 'label' => Craft::t('site', $section->name . ' - ' . $entryType->name),
                 'sites' => $section->getSiteIds(),
@@ -208,8 +213,23 @@ class ContentTemplate extends Element
                 'criteria' => [
                     'typeId' => $entryType->id,
                 ],
-                'defaultSort' => ['dateUpdated', 'desc'],
             ];
+            $structureId = (new Query())
+                ->select(['structureId'])
+                ->from(['cts' => '{{%contenttemplatesstructures}}'])
+                ->where(['typeId' => $entryType->id])
+                ->scalar();
+
+            if ($structureId) {
+                $user = Craft::$app->getUser()->getIdentity();
+                $source['defaultSort'] = ['structure', 'asc'];
+                $source['structureId'] = $structureId;
+                $source['structureEditable'] = $user && $user->can("saveEntries:$section->uid");
+            } else {
+                $source['defaultSort'] = ['postDate', 'desc'];
+            }
+
+            $sources[] = $source;
         }
 
         return $sources;
@@ -589,6 +609,7 @@ class ContentTemplate extends Element
                 '*.png',
                 '*.svg',
             ],
+            'recursive' => false,
         ]);
         $previewImageUrls = [];
         $setPreviewImageUrl = null;
