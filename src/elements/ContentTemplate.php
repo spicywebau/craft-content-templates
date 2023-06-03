@@ -317,7 +317,25 @@ class ContentTemplate extends Element
         if ($this->getIsDraft()) {
             Plugin::$plugin->projectConfig->save($this->uid, $config);
         } else {
-            $projectConfig->set("contentTemplates.$this->uid", $config);
+            // Save the position in the order first
+            $sortOrder = $config['sortOrder'];
+            $typeOrderPath = "contentTemplates.orders.{$config['type']}";
+            $typeOrder = $projectConfig->get($typeOrderPath);
+            $currentPositionInPath = array_search($this->uid, $typeOrder);
+
+            if ($currentPositionInPath === false) {
+                // New content templates get added to the top
+                array_unshift($typeOrder, $this->uid);
+            } elseif ($currentPositionInPath !== $sortOrder) {
+                array_splice($typeOrder, $currentPositionInPath, 1);
+                array_splice($typeOrder, $sortOrder, 0, $this->uid);
+            }
+
+            $projectConfig->set($typeOrderPath, $typeOrder);
+
+            // Now save the actual template config
+            unset($config['sortOrder']);
+            $projectConfig->set("contentTemplates.templates.$this->uid", $config);
         }
     }
 
@@ -343,14 +361,24 @@ class ContentTemplate extends Element
     {
         $request = Craft::$app->getRequest();
 
+        // Try to get `lft` from the structure elements table if we don't already have it
+        if (($lft = $this->lft) === null && $this->id !== null) {
+            $lft = (new Query())
+                ->select(['lft'])
+                ->from(Table::STRUCTUREELEMENTS)
+                ->where(['elementId' => $this->id])
+                ->scalar();
+        }
+
         return [
             'title' => $this->title,
             'type' => $this->getEntryType()->uid,
             'previewImage' => $this->previewImage,
             'content' => $this->_serializedFieldValuesWithoutBlockIds(),
             'description' => method_exists($request, 'getBodyParam')
-                ? $this->description ?? Craft::$app->getRequest()->getBodyParam('description')
+                ? $this->description ?? $request->getBodyParam('description')
                 : $this->description,
+            'sortOrder' => $lft ? $lft / 2 - 1 : null,
         ];
     }
 

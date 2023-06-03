@@ -111,9 +111,9 @@ class Plugin extends BasePlugin
     private function _registerProjectConfigApply(): void
     {
         Craft::$app->getProjectConfig()
-            ->onAdd('contentTemplates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
-            ->onUpdate('contentTemplates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
-            ->onRemove('contentTemplates.{uid}', [$this->projectConfig, 'handleDeletedContentTemplate']);
+            ->onAdd('contentTemplates.templates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
+            ->onUpdate('contentTemplates.templates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
+            ->onRemove('contentTemplates.templates.{uid}', [$this->projectConfig, 'handleDeletedContentTemplate']);
     }
 
     /**
@@ -123,12 +123,18 @@ class Plugin extends BasePlugin
     {
         Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
             $contentTemplateConfig = [];
+            $contentTemplateOrdersConfig = [];
 
-            foreach (ContentTemplate::find()->all() as $contentTemplate) {
-                $contentTemplateConfig[$contentTemplate->uid] = $contentTemplate->getConfig();
+            foreach (ContentTemplate::find()->withStructure(true)->all() as $contentTemplate) {
+                $config = $contentTemplate->getConfig();
+                $contentTemplateConfig[$contentTemplate->uid] = $config;
+                $contentTemplateOrdersConfig[$config['type']][$config['sortOrder']] = $contentTemplate->uid;
             }
 
-            $event->config['contentTemplates'] = $contentTemplateConfig;
+            $event->config['contentTemplates'] = [
+                'templates' => $contentTemplateConfig,
+                'orders' => $contentTemplateOrdersConfig,
+            ];
         });
     }
 

@@ -59,11 +59,9 @@ class ProjectConfig extends Component
             $projectConfig = Craft::$app->getProjectConfig();
             $id = Db::idByUid(Table::ELEMENTS, $uid);
             $record = ContentTemplateRecord::findOne(['id' => $id]);
-            $isNew = false;
 
             if ($record === null) {
                 $record = new ContentTemplateRecord();
-                $isNew = true;
             } elseif ($projectConfig->getIsApplyingExternalChanges()) {
                 // If we're applying external changes, we'll need to resave the element with the new content
                 $elementsService = Craft::$app->getElements();
@@ -100,29 +98,37 @@ class ProjectConfig extends Component
             $record->description = $data['description'] ?? null;
             $record->save();
 
-            // Add a new content template to the structure for its entry type, creating the structure if it doesn't exist
-            if ($isNew) {
-                $structuresService = Craft::$app->getStructures();
-                $contentTemplate = new ContentTemplate();
-                $contentTemplate->id = $record->id;
-                $structureId = (new Query())
-                    ->select(['structureId'])
-                    ->from(['cts' => '{{%contenttemplatesstructures}}'])
-                    ->where(['typeId' => $typeId])
-                    ->scalar();
+            // Put the content template in the correct place in the structure for its entry type, creating the structure
+            // if it doesn't exist
+            $structuresService = Craft::$app->getStructures();
+            $contentTemplate = new ContentTemplate();
+            $contentTemplate->id = $record->id;
+            $structureId = (new Query())
+                ->select(['structureId'])
+                ->from(['cts' => '{{%contenttemplatesstructures}}'])
+                ->where(['typeId' => $typeId])
+                ->scalar();
 
-                if (!$structureId) {
-                    $structure = new Structure();
-                    $structure->maxLevels = 1;
-                    $structuresService->saveStructure($structure);
-                    $structureId = $structure->id;
-                    Db::insert('{{%contenttemplatesstructures}}', [
-                        'typeId' => $typeId,
-                        'structureId' => $structureId,
-                    ]);
-                }
+            if (!$structureId) {
+                $structure = new Structure();
+                $structure->maxLevels = 1;
+                $structuresService->saveStructure($structure);
+                $structureId = $structure->id;
+                Db::insert('{{%contenttemplatesstructures}}', [
+                    'typeId' => $typeId,
+                    'structureId' => $structureId,
+                ]);
+            }
 
-                $structuresService->prependToRoot($structureId, $contentTemplate, Structures::MODE_INSERT);
+            $typeOrder = Craft::$app->getProjectConfig()->get("contentTemplates.orders.{$data['type']}");
+            $sortOrder = array_search($uid, $typeOrder);
+
+            if (!$sortOrder) {
+                $structuresService->prependToRoot($structureId, $contentTemplate);
+            } else {
+                $prevContentTemplate = new ContentTemplate();
+                $prevContentTemplate->id = Db::idByUid(Table::ELEMENTS, $typeOrder[$sortOrder - 1]);
+                $structuresService->moveAfter($structureId, $contentTemplate, $prevContentTemplate);
             }
         });
     }
