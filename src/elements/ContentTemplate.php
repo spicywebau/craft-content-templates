@@ -342,6 +342,30 @@ class ContentTemplate extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function afterDelete(): void
+    {
+        $projectConfig = Craft::$app->getProjectConfig();
+
+        if (!$projectConfig->getIsApplyingExternalChanges()) {
+            // Remove this content template's data from the project config
+            $projectConfig->remove("contentTemplates.$this->uid");
+            $projectConfig = Craft::$app->getProjectConfig();
+            $projectConfig->remove("contentTemplates.templates.$this->uid");
+            $typeOrderPath = "contentTemplates.orders.{$this->getEntryType()->uid}";
+            $typeOrder = $projectConfig->get($typeOrderPath);
+
+            if (($sortOrder = array_search($this->uid, $typeOrder)) !== false) {
+                array_splice($typeOrder, $sortOrder, 1);
+                $projectConfig->set($typeOrderPath, $typeOrder);
+            }
+        }
+
+        parent::afterDelete();
+    }
+
+    /**
      * Gets the URL for this content template's preview image, if one is set.
      *
      * @param array|null $transform The width and height to scale/crop the image to.
@@ -462,20 +486,6 @@ class ContentTemplate extends Element
         }
 
         return $serializedValues;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function afterDelete(): void
-    {
-        $projectConfig = Craft::$app->getProjectConfig();
-
-        if (!$projectConfig->getIsApplyingExternalChanges()) {
-            $projectConfig->remove("contentTemplates.$this->uid");
-        }
-
-        parent::afterDelete();
     }
 
     public function getSection(): ?Section
