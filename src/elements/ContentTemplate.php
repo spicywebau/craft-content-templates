@@ -337,6 +337,8 @@ class ContentTemplate extends Element
             unset($config['sortOrder']);
             $projectConfig->set("contentTemplates.templates.$this->uid", $config);
         }
+
+        parent::afterSave($isNew);
     }
 
     /**
