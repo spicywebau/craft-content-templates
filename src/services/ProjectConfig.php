@@ -121,7 +121,7 @@ class ProjectConfig extends Component
             }
 
             $typeOrder = Craft::$app->getProjectConfig()->get("contentTemplates.orders.{$data['type']}");
-            $sortOrder = array_search($uid, $typeOrder);
+            $sortOrder = $typeOrder ? array_search($uid, $typeOrder) : false;
 
             if (!$sortOrder) {
                 $structuresService->prependToRoot($structureId, $contentTemplate);

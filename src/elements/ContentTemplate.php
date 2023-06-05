@@ -320,7 +320,7 @@ class ContentTemplate extends Element
             // Save the position in the order first
             $sortOrder = $config['sortOrder'];
             $typeOrderPath = "contentTemplates.orders.{$config['type']}";
-            $typeOrder = $projectConfig->get($typeOrderPath);
+            $typeOrder = $projectConfig->get($typeOrderPath) ?? [];
             $currentPositionInPath = array_search($this->uid, $typeOrder);
 
             if ($currentPositionInPath === false) {
