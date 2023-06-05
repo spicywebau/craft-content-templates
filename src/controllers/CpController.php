@@ -51,8 +51,10 @@ namespace spicyweb\contenttemplates\controllers;
 
 use Craft;
 use craft\base\Element;
+use craft\db\Table;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Cp as CpHelper;
+use craft\helpers\Db;
 use craft\helpers\ElementHelper;
 use craft\helpers\UrlHelper;
 use craft\models\Section;
@@ -251,6 +253,23 @@ class CpController extends Controller
                 'fresh' => 1,
             ]),
         ]);
+    }
+
+    public function actionSaveConfigOrder(): Response
+    {
+        $projectConfig = Craft::$app->getProjectConfig();
+        $request = Craft::$app->getRequest();
+        $typeUid = $request->getRequiredBodyParam('type');
+        $elementIds = $request->getRequiredBodyParam('elementIds');
+        $indexedElementUids = Db::uidsByIds(Table::ELEMENTS, $elementIds);
+        $elementUids = array_map(fn($id) => $indexedElementUids[$id], $elementIds);
+
+        try {
+            Craft::$app->getProjectConfig()->set("contentTemplates.orders.$typeUid", $elementUids);
+            return $this->asSuccess();
+        } catch (\Exception $e) {
+            return $this->asFailure($e->getMessage());
+        }
     }
 
     private function _getIndexSettings(): array

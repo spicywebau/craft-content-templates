@@ -83,6 +83,25 @@ const ContentTemplateIndex = Craft.BaseElementIndex.extend({
     this.base()
   },
 
+  createView (mode: string, settings: object) {
+    // Remove any structure update listeners on the old view
+    this.view?.structureTableSort?.off('positionChange')
+
+    // Listen for structure updates on the new view
+    const newView = this.base(mode, settings)
+    newView.structureTableSort?.on('positionChange', (e: any) => {
+      // Send new structure data to server, which will update the project config
+      const data = {
+        type: e.target.tableView.elementIndex.$source.data('key').substring(10),
+        elementIds: e.target.$items.get().map((item: HTMLElement) => item.getAttribute('data-id'))
+      }
+      Craft.sendActionRequest('POST', 'content-templates/cp/save-config-order', { data })
+        .catch((_) => console.warn('Unable to update project config for content template order'))
+    })
+
+    return newView
+  },
+
   updateButton (this: ContentTemplateIndexInterface) {
     if (this.$source === null) {
       return
