@@ -23,7 +23,7 @@
     "rss": "https://github.com/spicywebau/craft-content-templates/commits/1.x.atom"
   },
   "require": {
-    "craftcms/cms": "^4.3.0",
+    "craftcms/cms": "^4.4.0",
     "php": "^8.0.2"
   },
   "autoload": {
