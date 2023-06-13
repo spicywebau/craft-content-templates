@@ -34,6 +34,7 @@
   "extra": {
     "handle": "content-templates",
     "name": "Content Templates",
+    "schemaVersion": "1.0.0",
     "class": "spicyweb\\contenttemplates\\Plugin",
     "changelogUrl": "https://github.com/spicywebau/craft-content-templates/blob/1.x/CHANGELOG.md",
     "downloadUrl": "https://github.com/spicywebau/craft-content-templates/archive/refs/tags/1.0.0.zip"
