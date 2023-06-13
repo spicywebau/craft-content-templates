@@ -25,6 +25,56 @@ use yii\base\Component;
 class ProjectConfig extends Component
 {
     /**
+     * Handles an external change to the order of content templates for an entry type.
+     *
+     * @param ConfigEvent $event
+     * @throws \Throwable
+     */
+    public function handleChangedContentTemplateOrder(ConfigEvent $event): void
+    {
+        $projectConfig = Craft::$app->getProjectConfig();
+
+        if (!$projectConfig->getIsApplyingExternalChanges()) {
+            return;
+        }
+
+        $typeUid = $event->tokenMatches[0];
+        $newOrder = $event->newValue;
+
+        // Ensure all content template changes have been processed
+        foreach ($newOrder as $contentTemplateUid) {
+            $projectConfig->processConfigChanges("contentTemplates.templates.$contentTemplateUid");
+        }
+
+        Craft::$app->getDb()->transaction(function() use ($typeUid, $newOrder) {
+            $structuresService = Craft::$app->getStructures();
+            $structureId = $this->_structureId(Db::idByUid(Table::ENTRYTYPES, $typeUid));
+
+            // Get all element IDs currently on the structure, so we know which ones to delete afterwards
+            $elementIdsToRemove = (new Query())
+                ->select(['elementId', 'id'])
+                ->from(['se' => Table::STRUCTUREELEMENTS])
+                ->where(['structureId' => $structureId])
+                ->pairs();
+
+            // Append the content templates to the structure according to the project config order
+            foreach ($newOrder as $contentTemplateUid) {
+                $contentTemplate = new ContentTemplate();
+                $contentTemplate->id = Db::idByUid(Table::ELEMENTS, $contentTemplateUid);
+                unset($elementIdsToRemove[$contentTemplate->id]);
+                $structuresService->appendToRoot($structureId, $contentTemplate);
+            }
+
+            // Delete from the structure anything that shouldn't be there anymore
+            foreach (array_keys($elementIdsToRemove) as $elementIdToRemove) {
+                $contentTemplate = new ContentTemplate();
+                $contentTemplate->id = (int)$elementIdToRemove;
+                $structuresService->remove($structureId, $contentTemplate);
+            }
+        });
+    }
+
+    /**
      * Handles deleting a content template.
      *
      * @param ConfigEvent $event
@@ -103,22 +153,7 @@ class ProjectConfig extends Component
             $structuresService = Craft::$app->getStructures();
             $contentTemplate = new ContentTemplate();
             $contentTemplate->id = $record->id;
-            $structureId = (new Query())
-                ->select(['structureId'])
-                ->from(['cts' => '{{%contenttemplatesstructures}}'])
-                ->where(['typeId' => $typeId])
-                ->scalar();
-
-            if (!$structureId) {
-                $structure = new Structure();
-                $structure->maxLevels = 1;
-                $structuresService->saveStructure($structure);
-                $structureId = $structure->id;
-                Db::insert('{{%contenttemplatesstructures}}', [
-                    'typeId' => $typeId,
-                    'structureId' => $structureId,
-                ]);
-            }
+            $structureId = $this->_structureId($typeId);
 
             $typeOrder = Craft::$app->getProjectConfig()->get("contentTemplates.orders.{$data['type']}");
             $sortOrder = $typeOrder ? array_search($uid, $typeOrder) : false;
@@ -131,5 +166,29 @@ class ProjectConfig extends Component
                 $structuresService->moveAfter($structureId, $contentTemplate, $prevContentTemplate);
             }
         });
+    }
+
+    /**
+     * Gets the structure ID for an entry type's content templates, creating the structure if it doesn't exist.
+     */
+    public function _structureId(int $typeId) {
+        $structureId = (new Query())
+            ->select(['structureId'])
+            ->from(['cts' => '{{%contenttemplatesstructures}}'])
+            ->where(['typeId' => $typeId])
+            ->scalar();
+
+        if (!$structureId) {
+            $structure = new Structure();
+            $structure->maxLevels = 1;
+            $structuresService->saveStructure($structure);
+            $structureId = $structure->id;
+            Db::insert('{{%contenttemplatesstructures}}', [
+                'typeId' => $typeId,
+                'structureId' => $structureId,
+            ]);
+        }
+
+        return $structureId;
     }
 }

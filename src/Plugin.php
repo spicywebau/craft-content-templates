@@ -111,6 +111,7 @@ class Plugin extends BasePlugin
     private function _registerProjectConfigApply(): void
     {
         Craft::$app->getProjectConfig()
+            ->onUpdate('contentTemplates.orders.{uid}', [$this->projectConfig, 'handleChangedContentTemplateOrder'])
             ->onAdd('contentTemplates.templates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
             ->onUpdate('contentTemplates.templates.{uid}', [$this->projectConfig, 'handleChangedContentTemplate'])
             ->onRemove('contentTemplates.templates.{uid}', [$this->projectConfig, 'handleDeletedContentTemplate']);
