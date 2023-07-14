@@ -181,7 +181,7 @@ class ProjectConfig extends Component
         if (!$structureId) {
             $structure = new Structure();
             $structure->maxLevels = 1;
-            $structuresService->saveStructure($structure);
+            Craft::$app->getStructures()->saveStructure($structure);
             $structureId = $structure->id;
             Db::insert('{{%contenttemplatesstructures}}', [
                 'typeId' => $typeId,
