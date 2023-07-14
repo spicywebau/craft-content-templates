@@ -356,7 +356,7 @@ class ContentTemplate extends Element
             $typeOrderPath = "contentTemplates.orders.{$this->getEntryType()->uid}";
             $typeOrder = $projectConfig->get($typeOrderPath);
 
-            if (($sortOrder = array_search($this->uid, $typeOrder)) !== false) {
+            if ($typeOrder !== null && ($sortOrder = array_search($this->uid, $typeOrder)) !== false) {
                 array_splice($typeOrder, $sortOrder, 1);
                 $projectConfig->set($typeOrderPath, $typeOrder);
             }
