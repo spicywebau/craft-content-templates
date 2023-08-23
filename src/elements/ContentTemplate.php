@@ -579,7 +579,9 @@ class ContentTemplate extends Element
             return null;
         }
 
-        return $this->_fieldLayoutWithoutEntryTitleField($entryType->getFieldLayout());
+        return $entryType !== null
+            ? $this->_fieldLayoutWithoutEntryTitleField($entryType->getFieldLayout())
+            : null;
     }
 
     /**
