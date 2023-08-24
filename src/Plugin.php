@@ -13,6 +13,7 @@ use craft\events\RegisterUrlRulesEvent;
 use craft\fields\Assets;
 use craft\helpers\Json;
 use craft\services\ProjectConfig;
+use craft\web\Application;
 use craft\web\UrlManager;
 use Illuminate\Support\Collection;
 use spicyweb\contenttemplates\controllers\CpController;
@@ -74,7 +75,7 @@ class Plugin extends BasePlugin
     {
         parent::init();
         self::$plugin = $this;
-        $this->hasCpSection = Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+        $this->_registerHasCpSection();
         $this->_registerProjectConfigApply();
         $this->_registerProjectConfigRebuild();
 
@@ -108,6 +109,17 @@ class Plugin extends BasePlugin
     protected function cpNavIconPath(): ?string
     {
         return $this->getBasePath() . DIRECTORY_SEPARATOR . 'icon.svg';
+    }
+
+    /**
+     * Sets whether a control panel section should be shown for the current user.
+     */
+    private function _registerHasCpSection(): void
+    {
+        Craft::$app->on(Application::EVENT_INIT, function() {
+            $this->hasCpSection = Craft::$app->getUser()->getIsAdmin() &&
+                Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+        });
     }
 
     /**
