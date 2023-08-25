@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Fixed
+- Fixed a bug where the 'Choose a template' modal would not appear when creating a new entry with fields with non-empty default values
 - Fixed an "Element query executed before Craft is fully initialized" warning in the Craft logs that was caused by Content Templates
 
 ## 1.0.2 - 2023-08-23

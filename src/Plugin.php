@@ -173,12 +173,14 @@ class Plugin extends BasePlugin
                     return;
                 }
 
-                $hasNoContent = Collection::make($element->getFieldLayout()->getCustomFields())
-                    ->filter(fn($field) => !$element->isFieldEmpty($field->handle))
-                    ->isEmpty();
-
-                // If it already has content, we don't want to overwrite it
-                if (!$hasNoContent) {
+                // Register the modal for new drafts (this will still make a modal appear for
+                // any unpublished draft with changes to anything other than the slug... but we
+                // can't check for no field values because fields might have default values)
+                if (
+                    $element->draftId === null ||
+                    $element->canonicalId !== $element->id ||
+                    !str_starts_with($element->slug, '__temp_')
+                ) {
                     return;
                 }
 
