@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+- Fixed a bug where the 'Choose a template' modal would reappear when reloading a new draft with changes made to any of its field values, as long as the slug had not been set
+
 ## 1.0.3 - 2023-08-25
 
 ### Fixed
