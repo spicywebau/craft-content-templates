@@ -149,6 +149,10 @@ class Plugin extends BasePlugin
                 $contentTemplateOrdersConfig[$config['type']][$config['sortOrder']] = $contentTemplate->uid;
             }
 
+            foreach ($contentTemplateOrdersConfig as $typeUid => $templateUids) {
+                $contentTemplateOrdersConfig[$typeUid] = array_values($templateUids);
+            }
+
             $event->config['contentTemplates'] = [
                 'templates' => $contentTemplateConfig,
                 'orders' => $contentTemplateOrdersConfig,
