@@ -54,6 +54,7 @@ use benf\neo\Plugin as Neo;
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\base\FieldInterface;
 use craft\db\Query;
 use craft\db\Table;
 use craft\elements\Entry;
@@ -67,6 +68,7 @@ use craft\helpers\UrlHelper;
 use craft\models\EntryType;
 use craft\models\FieldLayout;
 use craft\models\Section;
+use ether\seo\fields\SeoField;
 use spicyweb\contenttemplates\elements\db\ContentTemplateQuery;
 use spicyweb\contenttemplates\Plugin;
 use spicyweb\contenttemplates\web\assets\previewimageselect\PreviewImageSelectAsset;
@@ -400,7 +402,7 @@ class ContentTemplate extends Element
             'title' => $this->title,
             'type' => $this->getEntryType()->uid,
             'previewImage' => $this->previewImage,
-            'content' => $this->_serializedFieldValuesWithoutBlockIds(),
+            'content' => $this->_sanitiseFieldValues(),
             'description' => method_exists($request, 'getBodyParam')
                 ? $this->description ?? $request->getBodyParam('description')
                 : $this->description,
@@ -409,9 +411,12 @@ class ContentTemplate extends Element
     }
 
     /**
-     * Removes Neo / Matrix / Super Table block IDs from field values.
+     * Sanitises values returned by fields' `serializeValue()` method for project config storage.
+     *
+     * - Removes Neo / Matrix / Super Table block IDs from field values
+     * - Converts SEO field data to an array format
      */
-    private function _serializedFieldValuesWithoutBlockIds(
+    private function _sanitiseFieldValues(
         ?array $serializedValues = null,
         ?int $fieldLayoutId = null
     ): array {
@@ -426,11 +431,6 @@ class ContentTemplate extends Element
         $elementsService = Craft::$app->getElements();
         $fieldsService = Craft::$app->getFields();
         $fields = [];
-        $removeIdsFrom = [
-            NeoField::class,
-            MatrixField::class,
-            SuperTableField::class,
-        ];
 
         if ($fieldLayoutId !== null) {
             foreach ($fieldsService->getLayoutById($fieldLayoutId)?->getCustomFieldElements() ?? [] as $customFieldElement) {
@@ -446,46 +446,87 @@ class ContentTemplate extends Element
             }
 
             $field = $fields[$fieldHandle];
-            $fieldClass = get_class($field);
-
-            if (!in_array($fieldClass, $removeIdsFrom)) {
-                continue;
-            }
-
-            $i = 1;
-
-            foreach ($serializedValues[$fieldHandle] as $oldBlockId => $blockValue) {
-                $blockLayoutId = match ($fieldClass) {
-                    NeoField::class => (new Query())
-                        ->select(['fieldLayoutId'])
-                        ->from('{{%neoblocktypes}}')
-                        ->where([
-                            'fieldId' => $field->id,
-                            'handle' => $blockValue['type'],
-                        ])
-                        ->scalar(),
-                    MatrixField::class => (new Query())
-                        ->select(['fieldLayoutId'])
-                        ->from(Table::MATRIXBLOCKTYPES)
-                        ->where([
-                            'fieldId' => $field->id,
-                            'handle' => $blockValue['type'],
-                        ])
-                        ->scalar(),
-                    SuperTableField::class => SuperTable::$plugin->getService()
-                        ->getBlockTypeById($blockValue['type'])
-                        ->fieldLayoutId,
-                };
-                $blockValue['fields'] = $this->_serializedFieldValuesWithoutBlockIds(
-                    $blockValue['fields'],
-                    $blockLayoutId,
-                );
-                $serializedValues[$fieldHandle]['new' . $i++] = $blockValue;
-                unset($serializedValues[$fieldHandle][$oldBlockId]);
-            }
+            switch (get_class($field)) {
+                case NeoField::class:
+                case MatrixField::class:
+                case SuperTableField::class:
+                    $serializedValues[$fieldHandle] = $this->_sanitiseBlockElementFieldValue(
+                        $serializedValues[$fieldHandle],
+                        $field,
+                    );
+                    break;
+                case SeoField::class:
+                    $serializedValues[$fieldHandle] = $this->_sanitiseSeoFieldValue($serializedValues[$fieldHandle]);
+            };
         }
 
         return $serializedValues;
+    }
+
+    /**
+     * Removes Neo / Matrix / Super Table block IDs from field values.
+     */
+    private function _sanitiseBlockElementFieldValue(array $fieldValue, FieldInterface $field): array
+    {
+        $fieldClass = get_class($field);
+        $i = 1;
+
+        foreach ($fieldValue as $oldBlockId => $blockValue) {
+            $blockLayoutId = match ($fieldClass) {
+                NeoField::class => (new Query())
+                    ->select(['fieldLayoutId'])
+                    ->from('{{%neoblocktypes}}')
+                    ->where([
+                        'fieldId' => $field->id,
+                        'handle' => $blockValue['type'],
+                    ])
+                    ->scalar(),
+                MatrixField::class => (new Query())
+                    ->select(['fieldLayoutId'])
+                    ->from(Table::MATRIXBLOCKTYPES)
+                    ->where([
+                        'fieldId' => $field->id,
+                        'handle' => $blockValue['type'],
+                    ])
+                    ->scalar(),
+                SuperTableField::class => SuperTable::$plugin->getService()
+                    ->getBlockTypeById($blockValue['type'])
+                    ->fieldLayoutId,
+            };
+            $blockValue['fields'] = $this->_sanitiseFieldValues(
+                $blockValue['fields'],
+                $blockLayoutId,
+            );
+            $fieldValue['new' . $i++] = $blockValue;
+            unset($fieldValue[$oldBlockId]);
+        }
+
+        return $fieldValue;
+    }
+
+    /**
+     * Converts SEO field data to an array format.
+     */
+    private function _sanitiseSeoFieldValue(mixed $fieldValue): array
+    {
+        $socialValue = [];
+
+        foreach ($fieldValue->social as $name => $data) {
+            $socialValue[$name] = [
+                'image' => $data->imageId,
+                'title' => $data->title,
+                'description' => (string)$data->description,
+            ];
+        }
+
+        return [
+            'titleRaw' => $fieldValue->titleRaw,
+            'description' => $fieldValue->descriptionRaw,
+            'keywords' => $fieldValue->keywords,
+            'score' => $fieldValue->score,
+            'social' => $socialValue,
+            'advanced' => $fieldValue->advanced,
+        ];
     }
 
     public function getSection(): ?Section
