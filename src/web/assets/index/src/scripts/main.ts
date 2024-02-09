@@ -48,7 +48,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 declare const ContentTemplates: {
   IndexSettings: {
-    sections: Section[]
+    entryTypes: EntryType[]
   }
 }
 
@@ -73,13 +73,7 @@ const ContentTemplateIndex = Craft.BaseElementIndex.extend({
 
   afterInit () {
     // Set our local entry type data
-    this._entryTypes = ContentTemplates.IndexSettings.sections
-      .flatMap((section) => section.entryTypes.map((entryType) => {
-        return {
-          ...entryType,
-          section
-        }
-      }))
+    this._entryTypes = ContentTemplates.IndexSettings.entryTypes
     this.base()
   },
 
@@ -108,13 +102,7 @@ const ContentTemplateIndex = Craft.BaseElementIndex.extend({
     }
 
     const handle: string = this.$source.data('handle') as string
-    const selectedEntryType = this._entryTypes.find((entryType: EntryType) => {
-      if (typeof entryType.section === 'undefined') {
-        return false
-      }
-
-      return entryType.section.handle + '/' + entryType.handle === handle
-    })
+    const selectedEntryType = this._entryTypes.find((entryType: EntryType) => entryType.handle === handle)
 
     if (typeof selectedEntryType === 'undefined') {
       throw new Error(`Element index source handle "${handle}" is invalid`)
@@ -191,7 +179,9 @@ const ContentTemplateIndex = Craft.BaseElementIndex.extend({
       this._entryTypes.forEach((entryType: EntryType) => {
         const anchorRole = this.settings.context === 'index' ? 'link' : 'button'
         if (
-          (this.settings.context === 'index' && (entryType.section?.sites.includes(this.siteId) ?? false)) ||
+          // TODO
+          // (this.settings.context === 'index' && (entryType.section?.sites.includes(this.siteId) ?? false)) ||
+          this.settings.context === 'index' ||
           (this.settings.context !== 'index' && entryType !== selectedEntryType)
         ) {
           const $li = $('<li/>').appendTo($ul)
@@ -255,8 +245,7 @@ const ContentTemplateIndex = Craft.BaseElementIndex.extend({
     Craft.sendActionRequest('POST', 'content-templates/cp/create', {
       data: {
         siteId: this.siteId,
-        entryType: entryType.handle,
-        section: entryType.section?.handle
+        entryType: entryType.handle
       }
     })
       .then(({ data }) => {

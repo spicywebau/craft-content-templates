@@ -2,8 +2,10 @@
 
 namespace spicyweb\contenttemplates\elements\db;
 
+use Craft;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
+use craft\elements\Entry;
 
 /**
  * Content template element query class.
@@ -32,6 +34,17 @@ class ContentTemplateQuery extends ElementQuery
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
+    protected function fieldLayouts(): array
+    {
+        return Craft::$app->getFields()->getLayoutsByType(Entry::class);
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected function beforePrepare(): bool
     {
         $this->joinElementTable('contenttemplates');

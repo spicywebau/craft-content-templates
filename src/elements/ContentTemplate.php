@@ -67,7 +67,6 @@ use craft\helpers\FileHelper;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
 use craft\models\FieldLayout;
-use craft\models\Section;
 use ether\seo\fields\SeoField;
 use spicyweb\contenttemplates\elements\db\ContentTemplateQuery;
 use spicyweb\contenttemplates\Plugin;
@@ -105,11 +104,6 @@ class ContentTemplate extends Element
      * @var ?int The structure ID for this content template.
      */
     public ?int $structureId = null;
-
-    /**
-     * @var ?Section
-     */
-    private ?Section $_section = null;
 
     /**
      * @var ?EntryType
@@ -203,14 +197,13 @@ class ContentTemplate extends Element
     {
         $sources = [];
 
-        foreach (Craft::$app->getSections()->getAllEntryTypes() as $entryType) {
-            $section = $entryType->getSection();
+        foreach (Craft::$app->getEntries()->getAllEntryTypes() as $entryType) {
             $source = [
                 'key' => 'entryType:' . $entryType->uid,
-                'label' => Craft::t('site', $section->name . ' - ' . $entryType->name),
-                'sites' => $section->getSiteIds(),
+                'label' => Craft::t('site', $entryType->name),
+                'sites' => null, // TODO
                 'data' => [
-                    'handle' => $section->handle . '/' . $entryType->handle,
+                    'handle' => $entryType->handle,
                 ],
                 'criteria' => [
                     'typeId' => $entryType->id,
@@ -226,7 +219,7 @@ class ContentTemplate extends Element
                 $user = Craft::$app->getUser()->getIdentity();
                 $source['defaultSort'] = ['structure', 'asc'];
                 $source['structureId'] = $structureId;
-                $source['structureEditable'] = $user && $user->can("saveEntries:$section->uid");
+                $source['structureEditable'] = $user; // && $user->can("saveEntries:$section->uid"); // TODO
             } else {
                 $source['defaultSort'] = ['postDate', 'desc'];
             }
@@ -283,18 +276,14 @@ class ContentTemplate extends Element
     public function prepareEditScreen(Response $response, string $containerId): void
     {
         $entryType = $this->getEntryType();
-        $section = $this->getSection();
         $response->crumbs([
             [
                 'label' => self::pluralDisplayName(),
                 'url' => UrlHelper::cpUrl('content-templates'),
             ],
             [
-                'label' => Craft::t('site', '{section} - {entryType}', [
-                    'section' => $section->name,
-                    'entryType' => $entryType->name,
-                ]),
-                'url' => UrlHelper::cpUrl("content-templates/$section->handle/$entryType->handle"),
+                'label' => Craft::t('site', $entryType->name),
+                'url' => UrlHelper::cpUrl("content-templates/$entryType->handle"),
             ],
         ]);
     }
@@ -483,9 +472,8 @@ class ContentTemplate extends Element
                     ->scalar(),
                 MatrixField::class => (new Query())
                     ->select(['fieldLayoutId'])
-                    ->from(Table::MATRIXBLOCKTYPES)
+                    ->from(Table::ENTRYTYPES)
                     ->where([
-                        'fieldId' => $field->id,
                         'handle' => $blockValue['type'],
                     ])
                     ->scalar(),
@@ -529,21 +517,10 @@ class ContentTemplate extends Element
         ];
     }
 
-    public function getSection(): ?Section
-    {
-        if ($this->_section === null && $this->typeId !== null) {
-            $this->_section = Craft::$app->getSections()->getSectionById($this->getEntryType()->sectionId);
-        }
-
-        return $this->_section;
-    }
-
     public function getEntryType(): ?EntryType
     {
         if ($this->_entryType === null && $this->typeId !== null) {
-            $this->_entryType = Craft::$app->getSections()->getEntryTypeById($this->typeId);
-            // Set the section while we're here
-            $this->getSection();
+            $this->_entryType = Craft::$app->getEntries()->getEntryTypeById($this->typeId);
         }
 
         return $this->_entryType;
@@ -554,7 +531,7 @@ class ContentTemplate extends Element
      */
     public function canView(User $user): bool
     {
-        return $this->_can('view', $user);
+        return true;
     }
 
     /**
@@ -562,7 +539,7 @@ class ContentTemplate extends Element
      */
     public function canSave(User $user): bool
     {
-        return $this->_can('save', $user);
+        return true;
     }
 
     /**
@@ -570,39 +547,7 @@ class ContentTemplate extends Element
      */
     public function canDelete(User $user): bool
     {
-        // Fall back to the save permission for single sections, which would otherwise always return false
-        return $this->getSection()->type !== Section::TYPE_SINGLE
-            ? $this->_can('delete', $user)
-            : $this->_can('save', $user);
-    }
-
-    /**
-     * Common code for checking user permissions.
-     *
-     * @param string $action
-     * @param User $user
-     * @return bool Whether $user can do $action
-     */
-    private function _can(string $action, User $user): bool
-    {
-        $can = 'can' . ucfirst($action);
-        return parent::{$can}($user) ? true : $this->_mockEntryForPermissionChecks()->{$can}($user);
-    }
-
-    /**
-     * Creates an entry with this content template's entry type, for checking user permissions.
-     *
-     * @return Entry
-     */
-    private function _mockEntryForPermissionChecks(): Entry
-    {
-        $entryType = $this->getEntryType();
-        $mockEntry = new Entry();
-        $mockEntry->id = -1;
-        $mockEntry->sectionId = $entryType->sectionId;
-        $mockEntry->setTypeId($entryType->id);
-
-        return $mockEntry;
+        return true;
     }
 
     /**
@@ -652,8 +597,7 @@ class ContentTemplate extends Element
     protected function cpEditUrl(): ?string
     {
         $entryType = $this->getEntryType();
-        $section = $entryType->getSection();
-        $path = sprintf('content-templates/%s/%s/%s', $section->handle, $entryType->handle, $this->getCanonicalId());
+        $path = sprintf('content-templates/%s/%s', $entryType->handle, $this->getCanonicalId());
 
         return UrlHelper::cpUrl($path);
     }

@@ -103,35 +103,23 @@ class CpController extends Controller
     /**
      * Creates a new unpublished draft and redirects to its edit page.
      *
-     * @param string|null $section The section’s handle
      * @param string|null $entryType The entry type’s handle
      * @return Response|null
      * @throws BadRequestHttpException
      * @throws ForbiddenHttpException
      * @throws ServerErrorHttpException
      */
-    public function actionCreate(?string $section = null, ?string $entryType = null): ?Response
+    public function actionCreate(?string $entryType = null): ?Response
     {
-        if ($section) {
-            $sectionHandle = $section;
-        } else {
-            $sectionHandle = $this->request->getRequiredBodyParam('section');
-        }
-
         if ($entryType) {
             $entryTypeHandle = $entryType;
         } else {
             $entryTypeHandle = $this->request->getRequiredBodyParam('entryType');
         }
 
-        $section = Craft::$app->getSections()->getSectionByHandle($sectionHandle);
-        if (!$section) {
-            throw new BadRequestHttpException("Invalid section handle: $sectionHandle");
-        }
-
-        $entryType = ArrayHelper::firstWhere($section->getEntryTypes(), 'handle', $entryTypeHandle);
+        $entryType = Craft::$app->getEntries()->getEntryTypeByHandle($entryTypeHandle);
         if (!$entryType) {
-            throw new BadRequestHttpException("Invalid entry type handle: $sectionHandle");
+            throw new BadRequestHttpException("Invalid entry type handle: $entryTypeHandle");
         }
 
         $sitesService = Craft::$app->getSites();
@@ -149,21 +137,6 @@ class CpController extends Controller
             }
         }
 
-        $editableSiteIds = $section->getSiteIds();
-
-        if (!in_array($site->id, $editableSiteIds)) {
-            // If there’s more than one possibility and entries doesn’t propagate to all sites, let the user choose
-            if (count($editableSiteIds) > 1 && $section->propagationMethod !== Section::PROPAGATION_METHOD_ALL) {
-                return $this->renderTemplate('_special/sitepicker.twig', [
-                    'siteIds' => $editableSiteIds,
-                    'baseUrl' => "content-templates/$section->handle-$entryType->handle/new",
-                ]);
-            }
-
-            // Go with the first one
-            $site = $sitesService->getSiteById($editableSiteIds[0]);
-        }
-
         $user = static::currentUser();
 
         // Create & populate the draft
@@ -175,11 +148,9 @@ class CpController extends Controller
         if (($status = $this->request->getQueryParam('status')) !== null) {
             $enabled = $status === 'enabled';
         } else {
-            // Set the default status based on the section's settings
-            /** @var Section_SiteSettings $siteSettings */
-            $siteSettings = ArrayHelper::firstWhere($section->getSiteSettings(), 'siteId', $contentTemplate->siteId);
-            $enabled = $siteSettings->enabledByDefault;
+            $enabled = true;
         }
+
         if (Craft::$app->getIsMultiSite() && count($contentTemplate->getSupportedSites()) > 1) {
             $contentTemplate->enabled = true;
             $contentTemplate->setEnabledForSite($enabled);
@@ -276,18 +247,13 @@ class CpController extends Controller
     private function _getIndexSettings(): array
     {
         return [
-            'sections' => Collection::make(Craft::$app->getSections()->getEditableSections())
-                ->map(fn($section) => [
-                    'handle' => $section->handle,
-                    'sites' => $section->getSiteIds(),
-                    'entryTypes' => Collection::make($section->getEntryTypes())
-                        ->map(fn($entryType) => [
-                            'handle' => $entryType->handle,
-                            'id' => $entryType->id,
-                            'name' => Craft::t('site', $entryType->name),
-                            'uid' => $entryType->uid,
-                        ])
-                        ->all(),
+            'entryTypes' => Collection::make(Craft::$app->getEntries()->getAllEntryTypes())
+                ->map(fn($entryType) => [
+                    'handle' => $entryType->handle,
+                    'sites' => null, // TODO
+                    'id' => $entryType->id,
+                    'name' => Craft::t('site', $entryType->name),
+                    'uid' => $entryType->uid,
                 ])
                 ->all(),
         ];

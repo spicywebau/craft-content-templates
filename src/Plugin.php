@@ -219,9 +219,8 @@ class Plugin extends BasePlugin
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules['content-templates'] = 'content-templates/cp/index';
-            $event->rules['content-templates/<sectionHandle:{handle}>'] = 'content-templates/cp/index';
-            $event->rules['content-templates/<sectionHandle:{handle}>/<entryTypeHandle:{handle}>'] = 'content-templates/cp/index';
-            $event->rules['content-templates/<sectionHandle:{handle}>/<entryTypeHandle:{handle}>/<elementId:\d+>'] = 'elements/edit';
+            $event->rules['content-templates/<entryTypeHandle:{handle}>'] = 'content-templates/cp/index';
+            $event->rules['content-templates/<entryTypeHandle:{handle}>/<elementId:\d+>'] = 'elements/edit';
         });
     }
 }

@@ -23,8 +23,8 @@
     "rss": "https://github.com/spicywebau/craft-content-templates/commits/1.x.atom"
   },
   "require": {
-    "craftcms/cms": "^4.4.0",
-    "php": "^8.0.2"
+    "craftcms/cms": "^5.0.0-beta.1",
+    "php": "^8.2"
   },
   "autoload": {
     "psr-4": {
@@ -42,7 +42,8 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require-dev": {
-    "craftcms/ecs": "dev-main"
+    "craftcms/ecs": "dev-main",
+    "craftcms/rector": "dev-main"
   },
   "config": {
     "allow-plugins": {
