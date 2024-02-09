@@ -18,4 +18,4 @@ Then open your project's control panel, navigate to Settings &rarr; Plugins, fin
 
 ## Requirements
 
-Content Templates 1.x requires Craft CMS 4.4.0 or any later Craft CMS 4 release.
+Content Templates 2.x requires Craft CMS 5.
