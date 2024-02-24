@@ -236,8 +236,21 @@ class CpController extends Controller
         $elementsService = Craft::$app->getElements();
         $elementId = $request->getRequiredBodyParam('elementId');
         $contentTemplateId = $request->getRequiredBodyParam('contentTemplateId');
+        $siteHandle = $request->getQueryParam('site', null);
 
-        $element = $elementsService->getElementById($elementId);
+        // set the current requested site
+        if ($siteHandle !== null) {
+            $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
+        }
+
+        // query the element based on the current requested site, or the default as fallback
+        $element = $elementsService->getElementById($elementId, null, $site->id ?? null);
+
+        // failsafe if we don't find the specified element
+        if ($element === null) {
+            return $this->asFailure('Failed to find the specified element: ' . $elementId);
+        }
+
         $contentTemplate = $elementsService->getElementById($contentTemplateId);
         $tempDuplicateTemplate = $elementsService->duplicateElement($contentTemplate);
         $element->setFieldValues($tempDuplicateTemplate->getSerializedFieldValues());
