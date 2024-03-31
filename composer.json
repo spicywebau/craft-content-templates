@@ -1,7 +1,7 @@
 {
   "name": "spicyweb/craft-content-templates",
   "description": "A Craft CMS plugin for providing content editors a starting point when creating entries.",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0",
   "type": "craft-plugin",
   "keywords": [
     "cms",
@@ -19,11 +19,11 @@
   "support": {
     "issues": "https://github.com/spicywebau/craft-content-templates/issues",
     "source": "https://github.com/spicywebau/craft-content-templates",
-    "docs": "https://github.com/spicywebau/craft-content-templates/blob/2.0.0-beta.1/README.md",
+    "docs": "https://github.com/spicywebau/craft-content-templates/blob/2.0.0/README.md",
     "rss": "https://github.com/spicywebau/craft-content-templates/commits/2.x.atom"
   },
   "require": {
-    "craftcms/cms": "^5.0.0-beta.1",
+    "craftcms/cms": "^5.0.0",
     "php": "^8.2"
   },
   "autoload": {
@@ -34,10 +34,10 @@
   "extra": {
     "handle": "content-templates",
     "name": "Content Templates",
-    "schemaVersion": "1.0.0",
+    "schemaVersion": "2.0.0",
     "class": "spicyweb\\contenttemplates\\Plugin",
     "changelogUrl": "https://github.com/spicywebau/craft-content-templates/blob/2.x/CHANGELOG.md",
-    "downloadUrl": "https://github.com/spicywebau/craft-content-templates/archive/refs/tags/2.0.0-beta.1.zip"
+    "downloadUrl": "https://github.com/spicywebau/craft-content-templates/archive/refs/tags/2.0.0.zip"
   },
   "minimum-stability": "dev",
   "prefer-stable": true,

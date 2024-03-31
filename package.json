@@ -1,6 +1,6 @@
 {
   "name": "craft-content-templates",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0",
   "description": "A Craft CMS plugin for setting content templates for content editors to use as a starting point",
   "private": true,
   "main": "webpack.config.js",
