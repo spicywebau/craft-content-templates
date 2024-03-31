@@ -46,6 +46,11 @@ class Plugin extends BasePlugin
     /**
      * @inheritdoc
      */
+    public string $minVersionRequired = '1.0.0';
+
+    /**
+     * @inheritdoc
+     */
     public bool $hasCpSettings = true;
 
     /**
