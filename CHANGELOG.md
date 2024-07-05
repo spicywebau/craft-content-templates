@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Removed Craft 4 compatibility
 
+## 1.0.8 - 2024-07-05
+
+### Fixed
+- Fixed an error that occurred when applying project config changes that included a new content template
+
 ## 1.0.7 - 2024-02-24
 
 ### Fixed

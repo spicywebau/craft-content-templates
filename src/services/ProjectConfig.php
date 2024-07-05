@@ -106,18 +106,32 @@ class ProjectConfig extends Component
     public function save(string $uid, array $data): void
     {
         Craft::$app->getDb()->transaction(function() use ($uid, $data) {
+            $elementsService = Craft::$app->getElements();
             $projectConfig = Craft::$app->getProjectConfig();
+            $typeId = Db::idByUid(Table::ENTRYTYPES, $data['type']);
             $id = Db::idByUid(Table::ELEMENTS, $uid);
             $record = ContentTemplateRecord::findOne(['id' => $id]);
 
             if ($record === null) {
                 $record = new ContentTemplateRecord();
-            } elseif ($projectConfig->getIsApplyingExternalChanges()) {
-                // If we're applying external changes, we'll need to resave the element with the new content
-                $elementsService = Craft::$app->getElements();
-                $contentTemplate = $elementsService->getElementById($id);
+            }
+
+            // If we're applying external changes, we'll need to resave the element with the new content
+            if ($projectConfig->getIsApplyingExternalChanges()) {
+                if ($id === null) {
+                    $contentTemplate = new ContentTemplate();
+                    $contentTemplate->typeId = $typeId;
+                    $contentTemplate->previewImage = $data['previewImage'] ?? null;
+                    $contentTemplate->description = $data['description'] ?? null;
+                } else {
+                    $contentTemplate = $elementsService->getElementById($id);
+                }
+
+                $contentTemplate->title = $data['title'];
+                $contentTemplate->uid = $uid;
                 $contentTemplate->setFieldValues($data['content']);
                 $elementsService->saveElement($contentTemplate);
+                $id = $contentTemplate->id;
             }
 
             if (!isset($data['preview'])) {
@@ -141,7 +155,6 @@ class ProjectConfig extends Component
                     ->one();
             }
 
-            $typeId = Db::idByUid(Table::ENTRYTYPES, $data['type']);
             $record->id = $id;
             $record->typeId = $typeId;
             $record->previewImage = $data['previewImage'] ?? null;
