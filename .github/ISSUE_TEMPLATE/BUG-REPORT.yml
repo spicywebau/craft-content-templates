@@ -1,7 +1,8 @@
 name: Bug Report
 description: Let us know about a problem with Content Templates
 labels:
-  - bug
+  - "bug report"
+  - "bug report status: new"
 body:
   - type: markdown
     attributes:
