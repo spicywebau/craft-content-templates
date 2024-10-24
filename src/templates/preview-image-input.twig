@@ -11,25 +11,31 @@
     </div>
     {% if not disabled %}
         <input type="hidden" name="previewImage" value="{{ value ?? '' }}">
-        <div class="btn dashed add icon menubtn" data-preview-image-select-set>
-            {% if value == null %}
-                {{ 'Add'|t('content-templates') }}
-            {% else %}
-                {{ 'Replace'|t('content-templates') }}
-            {% endif %}
-        </div>
-        <div class="menu ct_preview-image-select-menu">
-            <ul class="padded">
-                {% for filename, previewUrl in previewImageUrls %}
-                    <li>
-                        <a aria-label="{{ filename }}" data-preview-image-select-item>
-                            <img src="{{ previewUrl }}">
-                            <span>{{ filename }}</span>
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
+        {% if previewImageUrls is empty %}
+            {% set settingsUrl = cpUrl('settings/plugins/content-templates') %}
+            <p class="error">{{ 'No images found in the preview source folder.'|t('content-templates') }}</p>
+            <p><a href="{{ settingsUrl }}" target="_blank" class="btn">{{ 'Edit plugin settings'|t('content-templates') }}</a></p>
+        {% else %}
+            <div class="btn dashed add icon menubtn" data-preview-image-select-set>
+                {% if value == null %}
+                    {{ 'Add'|t('content-templates') }}
+                {% else %}
+                    {{ 'Replace'|t('content-templates') }}
+                {% endif %}
+            </div>
+            <div class="menu ct_preview-image-select-menu">
+                <ul class="padded">
+                    {% for filename, previewUrl in previewImageUrls %}
+                        <li>
+                            <a aria-label="{{ filename }}" data-preview-image-select-item>
+                                <img src="{{ previewUrl }}">
+                                <span>{{ filename }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
         <div class="btn dashed delete icon{{ value == null ? ' hidden' }}" data-preview-image-select-remove>{{ 'Remove'|t('content-templates') }}</div>
     {% endif %}
 </div>
