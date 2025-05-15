@@ -81,8 +81,15 @@ class Plugin extends BasePlugin
         parent::init();
         self::$plugin = $this;
         $this->_registerHasCpSection();
-        $this->_registerProjectConfigApply();
-        $this->_registerProjectConfigRebuild();
+
+        if ($this->getSettings()->useProjectConfig) {
+            $this->_registerProjectConfigApply();
+            $this->_registerProjectConfigRebuild();
+        }
+
+        if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $this->_registerUseProjectConfigSettingCheck();
+        }
 
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerModal();
@@ -123,7 +130,7 @@ class Plugin extends BasePlugin
     {
         Craft::$app->on(Application::EVENT_INIT, function() {
             $this->hasCpSection = Craft::$app->getUser()->getIsAdmin() &&
-                Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
+                (!$this->getSettings()->useProjectConfig || Craft::$app->getConfig()->getGeneral()->allowAdminChanges);
         });
     }
 
@@ -145,24 +152,47 @@ class Plugin extends BasePlugin
     private function _registerProjectConfigRebuild(): void
     {
         Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
-            $contentTemplateConfig = [];
-            $contentTemplateOrdersConfig = [];
-
-            foreach (ContentTemplate::find()->withStructure(true)->all() as $contentTemplate) {
-                $config = $contentTemplate->getConfig();
-                $contentTemplateConfig[$contentTemplate->uid] = $config;
-                $contentTemplateOrdersConfig[$config['type']][$config['sortOrder']] = $contentTemplate->uid;
-            }
-
-            foreach ($contentTemplateOrdersConfig as $typeUid => $templateUids) {
-                $contentTemplateOrdersConfig[$typeUid] = array_values($templateUids);
-            }
-
-            $event->config['contentTemplates'] = [
-                'templates' => $contentTemplateConfig,
-                'orders' => $contentTemplateOrdersConfig,
-            ];
+            $event->config['contentTemplates'] = $this->_configFromDb();
         });
+    }
+
+    /**
+     * Adds or removes all Content Templates project config data if the `useProjectConfig` plugin setting has recently been changed.
+     */
+    private function _registerUseProjectConfigSettingCheck(): void
+    {
+        Craft::$app->on(Application::EVENT_INIT, function() {
+            $projectConfig = Craft::$app->getProjectConfig();
+            $useProjectConfig = $this->getSettings()->useProjectConfig;
+            $hasProjectConfig = $projectConfig->get('contentTemplates');
+
+            if ($useProjectConfig && !$hasProjectConfig) {
+                $projectConfig->set('contentTemplates', $this->_configFromDb());
+            } elseif (!$useProjectConfig && $hasProjectConfig) {
+                $projectConfig->remove('contentTemplates');
+            }
+        });
+    }
+
+    private function _configFromDb(): array
+    {
+        $contentTemplateConfig = [];
+        $contentTemplateOrdersConfig = [];
+
+        foreach (ContentTemplate::find()->withStructure(true)->all() as $contentTemplate) {
+            $config = $contentTemplate->getConfig();
+            $contentTemplateConfig[$contentTemplate->uid] = $config;
+            $contentTemplateOrdersConfig[$config['type']][$config['sortOrder']] = $contentTemplate->uid;
+        }
+
+        foreach ($contentTemplateOrdersConfig as $typeUid => $templateUids) {
+            $contentTemplateOrdersConfig[$typeUid] = array_values($templateUids);
+        }
+
+        return [
+            'templates' => $contentTemplateConfig,
+            'orders' => $contentTemplateOrdersConfig,
+        ];
     }
 
     /**

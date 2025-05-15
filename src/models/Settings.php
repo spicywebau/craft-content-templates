@@ -19,6 +19,11 @@ class Settings extends Model
     public string $previewSource = '@webroot';
 
     /**
+     * @var bool Whether to store content templates in Craft's project config.
+     */
+    public bool $useProjectConfig = true;
+
+    /**
      * @inheritdoc
      */
     protected function defineRules(): array
