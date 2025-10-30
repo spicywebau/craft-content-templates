@@ -225,8 +225,17 @@ class CpController extends Controller
         $contentTemplate = $elementsService->getElementById($contentTemplateId);
         $tempDuplicateTemplate = $elementsService->duplicateElement($contentTemplate);
         $element->setFieldValues($tempDuplicateTemplate->getSerializedFieldValues());
-        $element->slug = "entry-$elementId";
-        $success = $elementsService->saveElement($element, !$element->getIsDraft());
+
+        if ($element->getIsDraft()) {
+            $success = $elementsService->saveElement($element, false);
+        } else {
+            if (!$element->slug) {
+                $element->slug = "entry-$elementId";
+            }
+
+            $success = $elementsService->saveElement($element);
+        }
+
         $elementsService->deleteElement($tempDuplicateTemplate);
 
         if (!$success) {
