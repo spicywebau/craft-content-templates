@@ -182,6 +182,33 @@ class ProjectConfig extends Component
     }
 
     /**
+     * Generates the plugin's project config data.
+     *
+     * @return array
+     * @since 2.1.0
+     */
+    public function getFromDb(): array
+    {
+        $contentTemplateConfig = [];
+        $contentTemplateOrdersConfig = [];
+
+        foreach (ContentTemplate::find()->withStructure(true)->all() as $contentTemplate) {
+            $config = $contentTemplate->getConfig();
+            $contentTemplateConfig[$contentTemplate->uid] = $config;
+            $contentTemplateOrdersConfig[$config['type']][$config['sortOrder']] = $contentTemplate->uid;
+        }
+
+        foreach ($contentTemplateOrdersConfig as $typeUid => $templateUids) {
+            $contentTemplateOrdersConfig[$typeUid] = array_values($templateUids);
+        }
+
+        return [
+            'templates' => $contentTemplateConfig,
+            'orders' => $contentTemplateOrdersConfig,
+        ];
+    }
+
+    /**
      * Gets the structure ID for an entry type's content templates, creating the structure if it doesn't exist.
      */
     public function _structureId(int $typeId) {

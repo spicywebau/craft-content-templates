@@ -8,7 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Added
+- Added `spicyweb\contenttemplates\console\controllers\PcController`
+- Added `spicyweb\contenttemplates\console\controllers\ProjectConfigController`
 - Added `spicyweb\contenttemplates\models\Settings::$useProjectConfig`
+- Added `spicyweb\contenttemplates\services\ProjectConfig::getFromDb()`
+- Added the `content-templates/project-config/rebuild`/`content-templates/pc/rebuild` command
 
 ### Changed
 - When applying a content template to a new entry draft, a slug is no longer generated for the draft

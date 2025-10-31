@@ -8,6 +8,7 @@ A Craft CMS plugin for providing content editors a starting point when creating 
 
 - [Installation](docs/installation.md)
 - [Usage](docs/usage.md)
+- [Console Commands](docs/console-commands.md)
 - [Plugin Settings](docs/plugin-settings.md)
 
 ---
