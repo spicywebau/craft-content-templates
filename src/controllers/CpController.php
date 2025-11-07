@@ -223,7 +223,7 @@ class CpController extends Controller
         }
 
         $contentTemplate = $elementsService->getElementById($contentTemplateId);
-        $tempDuplicateTemplate = $elementsService->duplicateElement($contentTemplate);
+        $tempDuplicateTemplate = $elementsService->duplicateElement($contentTemplate, asUnpublishedDraft: true);
         $element->setFieldValues($tempDuplicateTemplate->getSerializedFieldValues());
 
         if ($element->getIsDraft()) {

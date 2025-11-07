@@ -58,7 +58,9 @@ class ContentTemplatesModal {
           }
           Craft.sendActionRequest('POST', 'content-templates/cp/apply', { data })
             .then((response) => {
-              window.location.href = response.data.redirect
+              if (typeof response.data.redirect !== 'undefined') {
+                window.location.href = response.data.redirect
+              }
             })
             .catch(response => {
               $modal.removeClass('applying')

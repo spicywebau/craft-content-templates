@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `spicyweb\contenttemplates\console\controllers\ProjectConfigController`
 - Added `spicyweb\contenttemplates\models\Settings::$useProjectConfig`
 - Added `spicyweb\contenttemplates\services\ProjectConfig::getFromDb()`
+- Added the `content-templates/project-config/cleanup-db`/`content-templates/pc/cleanup-db` command
 - Added the `content-templates/project-config/rebuild`/`content-templates/pc/rebuild` command
 
 ### Changed
